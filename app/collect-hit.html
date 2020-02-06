@@ -55,7 +55,15 @@
 <button class="btn" disabled="true" id="play" onclick="play_animation();" type="button">Play / Replay</button></div>
 
 <div class="col-xs-12 col-sm-8 fields">
-<div class="form-group"><label for="tag1">Write your Directions here (with correct spelling and punctuation):</label><textarea class="form-control" disabled="true" id="tag1" minlength="20" name="tag1" required="" rows="3" size="200" spellcheck="true" type="text"></textarea></div>
+<div class="form-group"><label for="tag1" id="two_pro">Describe its color, pose and a third attribute of the target.</label><textarea class="form-control" disabled="true" id="tag1" minlength="3" name="tag1" required="" rows="3" size="200" spellcheck="true" type="text"></textarea></div>
+</div>
+<div class="form-group"><label for="tag2">Write your Directions here (with correct spelling and punctuation):</label><textarea class="form-control" disabled="true" id="tag1" minlength="20" name="tag1" required="" rows="3" size="200" spellcheck="true" type="text"></textarea></div>
+</div>
+<div class="form-group"><label for="tag3">Write your Directions here (with correct spelling and punctuation):</label><textarea class="form-control" disabled="true" id="tag1" minlength="20" name="tag1" required="" rows="3" size="200" spellcheck="true" type="text"></textarea></div>
+</div>
+<div class="form-group"><label for="tag4">Write your Directions here (with correct spelling and punctuation):</label><textarea class="form-control" disabled="true" id="tag1" minlength="20" name="tag1" required="" rows="3" size="200" spellcheck="true" type="text"></textarea></div>
+</div>
+<div class="form-group"><label for="tag5">Write your Directions here (with correct spelling and punctuation):</label><textarea class="form-control" disabled="true" id="tag1" minlength="20" name="tag1" required="" rows="3" size="200" spellcheck="true" type="text"></textarea></div>
 </div>
 </div>
 </section>
@@ -112,6 +120,10 @@ img.loading {
       }
     });
     // end avoid newlines
+                    
+    var two_properties = get_random_property();
+    var fist_inst_label = document.getElementById('two_pro');
+    fist_inst_label.innerText = "Describe its " + two_properties[0] + ", " + two_properties[1] + " and a third attribute of the target."
   });
 </script><script>
 //var ix = ${ix}   // UNCOMMENT THIS LINE WHEN INTEGRATING WITH AMT
@@ -144,6 +156,19 @@ matt.loadJson('sample_room_paths.json').then(function(data){
   skybox_init();
   load_connections(scan, curr_image_id);
 });
+
+function get_random_property() {
+    var rand1 = Math.random();
+    var rand2 = Math.random();
+    while(rand1 == rand2) {
+        rand2 = Math.random();
+    }
+    var num1 = 1 + Math.floor(rand1 * 6);
+    var num2 = 1 + Math.floor(rand2 * 6);
+    
+    var properties = new Array('color', 'shape', 'material', 'state', 'size', 'pose');
+    return [properties[num1], properties[num2]];
+}
 
 function play_animation() {
   if (!playing){
