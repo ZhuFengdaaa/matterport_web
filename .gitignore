@@ -1,0 +1,7 @@
+dist
+node_modules
+app/R2Rdata
+app/connectivity
+app/data
+.idea
+.DS_Store
