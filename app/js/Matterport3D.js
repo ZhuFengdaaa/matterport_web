@@ -70,11 +70,12 @@ Matterport3D.prototype.load_viewpoints = function(data, {h=0.5, opacity=0.7} = {
       }
     }
 
-    var box_geometry = new THREE.BoxGeometry(1, 1, 1)
+    var box_geometry = new THREE.BoxGeometry(0.15, 0.15, 2)
     var box_material = new THREE.MeshLambertMaterial({color: 0x00ff00});
     // box_material.transparent = true;
     box_material.opacity = opacity;
     var boxes = new THREE.Mesh(box_geometry, box_material);
+    group.add(boxes)
   }
   return group;
 };
