@@ -294,12 +294,12 @@ function load_connections(scan, image_id) {
       id_to_ix[im] = i;
     }
 
-    var box_geometry = new THREE.BoxGeometry(1, 1, 2)
-    var box_material = new THREE.MeshLambertMaterial({color: 0x00ff00});
-    // box_material.transparent = true;
-    box_material.opacity = opacity;
-    var boxes = new THREE.Mesh(box_geometry, box_material);
-    world_frame.add(boxes)
+    // var box_geometry = new THREE.BoxGeometry(1, 1, 2)
+    // var box_material = new THREE.MeshLambertMaterial({color: 0x00ff00});
+    // // box_material.transparent = true;
+    // box_material.opacity = opacity;
+    // var boxes = new THREE.Mesh(box_geometry, box_material);
+    // world_frame.add(boxes)
 
     world_frame.add(cylinder_frame);
     var image_id = path[0][0];
