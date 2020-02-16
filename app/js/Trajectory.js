@@ -1,5 +1,4 @@
 
-
 var step = 0;
 var playing = false;
 var downloading = false;
@@ -41,6 +40,27 @@ $ix.value=ix;
 $width.value=SIZE_X;
 $height.value=SIZE_Y;
 $vfov.value=VFOV;
+
+// used for drawing bounding box
+var startPoint = new THREE.Vector3();
+var endPoint = new THREE.Vector3();
+var box_geometry = new THREE.Geometry();
+/*
+ * Create a Rectangle
+ */
+//  var vertexSize = 2;
+// box_geometry.vertices.push(new THREE.Vector3(-vertexSize, vertexSize, 0.0));
+// box_geometry.vertices.push(new THREE.Vector3(vertexSize, vertexSize, 0.0));
+// box_geometry.vertices.push(new THREE.Vector3(vertexSize, -vertexSize, 0.0));
+// box_geometry.vertices.push(new THREE.Vector3(-vertexSize, -vertexSize, 0.0));
+// box_geometry.faces.push(new THREE.Face3(0, 1, 2));
+// box_geometry.faces.push(new THREE.Face3(0, 2, 3));
+// var box_material = new THREE.MeshBasicMaterial({
+//     color: 0xDB1E1E,
+//     wireframe: true
+// });
+// var box_mesh = new THREE.Mesh(box_geometry, box_material);
+// box_mesh.rotation.x = -Math.PI;
 
 // listen for keyup events on width & height input-text elements
 // Get the current values from input-text & set the width/height vars
@@ -149,9 +169,44 @@ function initialize(){
       }
     });
   });
+
+  // canvas.addEventListener('mousedown', mouseDown, false);
+  // canvas.addEventListener('mouseup', mouseUp, false);
+  // canvas.addEventListener('mousemove', mouseMove, false);
 }
 var matt = new Matterport3D("");
 initialize();
+
+// function mouseDown(event) {
+//   // rect.startX = e.pageX - this.offsetLeft;
+//   // rect.startY = e.pageY - this.offsetTop;
+//   startPoint.set(
+//     ( event.clientX / window.innerWidth ) * 2 - 1,
+//     - ( event.clientY / window.innerHeight ) * 2 + 1,
+//     0.5 );
+//   drag = true;
+// }
+
+// function mouseUp() {
+//   endPoint.set(
+//     ( event.clientX / window.innerWidth ) * 2 - 1,
+//     - ( event.clientY / window.innerHeight ) * 2 + 1,
+//     0.5 );
+//   drag = false;
+// }
+
+// function mouseMove(e) {
+//   if (drag) {
+//     rect.w = (e.pageX - this.offsetLeft) - rect.startX;
+//     rect.h = (e.pageY - this.offsetTop) - rect.startY ;
+//     ctx.clearRect(0,0,canvas.width,canvas.height);
+//     drawRectangle();
+//   }
+// }
+
+// function drawRectangle() {
+//   ctx.fillRect(rect.startX, rect.startY, rect.w, rect.h);
+// }
 
 function download() {
   if (!playing && !downloading){
@@ -257,6 +312,7 @@ function skybox_init(scan, image) {
   scene = new THREE.Scene();
   world_frame.add(camera_pose);
   scene.add(cubemap_frame);
+  // scene.add(box_mesh);
 
   var light = new THREE.DirectionalLight( 0xFFFFFF, 1 );
   light.position.set(0, 0, 100);
@@ -294,14 +350,28 @@ function load_connections(scan, image_id) {
       id_to_ix[im] = i;
     }
 
-    // var box_geometry = new THREE.BoxGeometry(1, 1, 2)
-    // var box_material = new THREE.MeshLambertMaterial({color: 0x00ff00});
-    // // box_material.transparent = true;
-    // box_material.opacity = opacity;
-    // var boxes = new THREE.Mesh(box_geometry, box_material);
-    // world_frame.add(boxes)
-
     world_frame.add(cylinder_frame);
+
+    // var box_group = new THREE.Group();
+    // var box_geometry = new THREE.BoxGeometry(1, 1, 2)
+    // var box_material = new THREE.MeshLambertMaterial({color: 0xffffff});
+    // box_material.transparent = true;
+    // box_material.opacity = 1;
+    // var boxes = new THREE.Mesh(box_geometry, box_material);
+    // boxes.position.set(0, 5, 0)
+    // // 立方体几何体box作为EdgesGeometry参数创建一个新的几何体
+    // var edges = new THREE.EdgesGeometry(box_geometry);
+    // // 立方体线框，不显示中间的斜线
+    // var edgesMaterial = new THREE.LineBasicMaterial({
+    //   color: 0xffffff
+    // })
+    // var line = new THREE.LineSegments(edges,edgesMaterial);
+    // line.position.set(0, 5, 0)
+    // // 网格模型和网格模型对应的轮廓线框插入到场景中
+    // box_group.add(boxes)
+    // box_group.add(line)
+    // world_frame.add(box_group)
+
     var image_id = path[0][0];
     matt.loadCubeTexture(cube_urls(scan, image_id)).then(function(texture){
       scene.background = texture;

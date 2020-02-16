@@ -42,6 +42,23 @@ $width.value=SIZE_X;
 $height.value=SIZE_Y;
 $vfov.value=VFOV;
 
+//used for drawing bounding box
+var startPoint = new THREE.Vector2();
+var box_startPoint = new THREE.Vector3();
+var box_endPoint = new THREE.Vector3();
+var box_startPoint_3dpos = new THREE.Vector3();
+var box_endPoint_3dpos = new THREE.Vector3();
+var pointTopLeft = new THREE.Vector2();
+var pointBottomRight = new THREE.Vector2();
+var box_geometry = new THREE.Geometry();
+var isDown = false;
+var plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -10);
+var pointOfIntersection = new THREE.Vector3();
+var raycaster = new THREE.Raycaster();
+element = document.createElement( 'div' );
+element.classList.add( 'selectBox' );
+element.style.pointerEvents = 'none';
+
 // listen for keyup events on width & height input-text elements
 // Get the current values from input-text & set the width/height vars
 // call draw to redraw the rect with the current width/height values
@@ -96,6 +113,19 @@ $vfov.addEventListener("keyup", function(){
     draw();
 }, false);
 
+document.getElementById('show-instructions').addEventListener("change", function(){
+  move_to(curr_image_id);
+});
+
+document.getElementById('trajFile').addEventListener("change", function(evt){
+  reset();
+  ix = 0;
+  $ix.value=ix;
+  var file = evt.target.files[0];
+  $('#fileName').text(file.name);
+  initialize();
+}, false);
+
 function draw(){
   id = traj[ix]['instr_id'];
   $instr_id.value=id;
@@ -105,8 +135,8 @@ function draw(){
     if (gt[i]['path_id'] == id.split('_')[0]) {
       scan = gt[i]['scan'];
       curr_image_id = gt[i]['path'][0];
-      // instr = gt[i]['instructions'][parseInt(id.split('_')[1])];
-      // $('#instruction').text(instr);
+      instr = gt[i]['instructions'][parseInt(id.split('_')[1])];
+      $('#instruction').text(instr);
       found = true;
       break;
     }
@@ -114,6 +144,7 @@ function draw(){
   if (found){
     skybox_init();
     load_connections(scan, curr_image_id);
+    console.log('skybox init success')
   } else {
     console.error('instruction id ' + id + ' not in something');
   }
@@ -136,9 +167,159 @@ function initialize(){
       }
     });
   });
+
+  skybox.addEventListener('mousedown', mouseDown, false);
+  skybox.addEventListener('mouseup', mouseUp, false);
+  skybox.addEventListener('mousemove', mouseMove, false);
 }
 var matt = new Matterport3D("");
 initialize();
+
+function mouseDown(event) {
+  // rect.startX = e.pageX - this.offsetLeft;
+  // rect.startY = e.pageY - this.offsetTop;
+  box_startPoint.set(
+    ( event.clientX / window.innerWidth ) * 2 - 1,
+    - ( event.clientY / window.innerHeight ) * 2 + 1,
+    0.5 );
+  isDown = true;
+
+  renderer.domElement.parentElement.appendChild( element );
+  element.style.left = event.clientX + 'px';
+  element.style.top = event.clientY + 'px';
+  element.style.width = '0px';
+  element.style.height = '0px';
+
+  startPoint.x = event.clientX;
+  startPoint.y = event.clientY;
+}
+
+function mouseUp() {
+  isDown = false;
+  box_endPoint.set(
+    ( event.clientX / window.innerWidth ) * 2 - 1,
+    - ( event.clientY / window.innerHeight ) * 2 + 1,
+    0.5 );
+  console.log(box_startPoint)
+  console.log(box_endPoint)
+  element.parentElement.removeChild( element );
+
+  // box_startPoint.unproject(camera);
+  // console.log(box_startPoint);
+  // box_startPoint.sub( camera.position ).normalize();
+  // console.log(box_startPoint);
+
+  // var gg = new THREE.Group();
+  // var geom = new THREE.Geometry();
+  // var material = new THREE.PointsMaterial({
+  //   size: 1,
+  //   vertexColors: true,
+  //   color: new THREE.Color(0xffffff)
+  // })
+  // geom.vertices.push(box_endPoint);
+  // // geom.vertices.push(box_startPoint);
+  // var color = new THREE.Color(0xffffff);
+  // var asHSL = {};
+  // color.getHSL(asHSL);
+  // color.setHSL(asHSL.h, asHSL.s, asHSL.l * Math.random());
+  // geom.colors.push(color);
+  // // geom.colors.push(color);
+  // cloud = new THREE.Points(geom, material);
+  // gg.add(cloud);
+  // scene.add(cloud);
+  // render();
+  // var distance = - camera.position.z / box_startPoint.z;
+  // console.log(distance);
+  // box_startPoint_3dpos.copy( camera.position ).add( box_startPoint.multiplyScalar( distance ) );
+  // console.log(box_startPoint_3dpos);
+
+  // element.parentElement.removeChild( element );
+}
+
+function mouseMove(e) {
+  if (isDown) {
+    box_endPoint.set(
+      ( event.clientX / window.innerWidth ) * 2 - 1,
+      - ( event.clientY / window.innerHeight ) * 2 + 1,
+      0.5 );
+
+    pointBottomRight.x = Math.max( startPoint.x, event.clientX );
+    pointBottomRight.y = Math.max( startPoint.y, event.clientY );
+    pointTopLeft.x = Math.min( startPoint.x, event.clientX );
+    pointTopLeft.y = Math.min( startPoint.y, event.clientY );
+
+    element.style.left = pointTopLeft.x + 'px';
+    element.style.top = pointTopLeft.y + 'px';
+    element.style.width = ( pointBottomRight.x - pointTopLeft.x ) + 'px';
+    element.style.height = ( pointBottomRight.y - pointTopLeft.y ) + 'px';
+  }
+}
+
+function download() {
+  if (!playing && !downloading){
+    downloading = true;
+    mediaStream = $canvas.captureStream(frameRate);
+    var options = {
+      mimeType : "video/webm;codecs=H264"
+    }
+    capturer = new MediaRecorder(mediaStream, options);
+    capturer.ondataavailable = function(event){
+      // save download
+      var url = URL.createObjectURL(event.data);
+      var a = document.createElement('a');
+      document.body.appendChild(a);
+      a.style = 'display: none';
+      a.href = url;
+      a.download = $instr_id.value + '.webm';
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    };
+    capturer.start();
+    setTimeout(function(){ play(); }, pauseStart);
+  }
+}
+
+function download_image() {
+  if (!playing && !downloading){
+    var canvas = document.getElementById("skybox");
+    image = canvas.toDataURL();//.replace("image/png", "image/octet-stream");
+    // save download
+    var a = document.createElement('a');
+    document.body.appendChild(a);
+    a.style = 'display: none';
+    a.href = image;
+    a.download = 'threejs_' + get_pose_string() + '.png';
+    a.click();
+    a.remove();
+  }
+}
+
+function play() {
+  if (!playing){
+    $play.disabled = true;
+    $download.disabled = true;
+    if (step != 0 || curr_image_id != path[0][0]){
+      // First move back to start
+      var image_id = path[0][0];
+      matt.loadCubeTexture(cube_urls(scan, image_id)).then(function(texture){
+        camera.rotation.x = 0;
+        camera.rotation.y = 0;
+        camera.rotation.z = 0;
+        scene.background = texture;
+        render();
+        move_to(image_id, true);
+        step = 0;
+        playing = true;
+        step_forward();
+      });
+    } else {
+      step = 0;
+      playing = true;
+      step_forward();
+    }
+  }
+}
 
 function step_forward(){
   step += 1;
@@ -178,6 +359,7 @@ function skybox_init(scan, image) {
   scene = new THREE.Scene();
   world_frame.add(camera_pose);
   scene.add(cubemap_frame);
+  // scene.add(box_mesh);
 
   var light = new THREE.DirectionalLight( 0xFFFFFF, 1 );
   light.position.set(0, 0, 100);
@@ -214,7 +396,71 @@ function load_connections(scan, image_id) {
       var im = data[i]['image_id'];
       id_to_ix[im] = i;
     }
+
     world_frame.add(cylinder_frame);
+
+    // var gg = new THREE.Group();
+    // var geom = new THREE.Geometry();
+    // var material = new THREE.PointsMaterial({
+    //   size: 1,
+    //   vertexColors: true,
+    //   color: new THREE.Color(0xffffff)
+    // })
+    // geom.vertices.push(new THREE.Vector3(0, 4.6293621947622325, 0));
+    // // geom.vertices.push(box_startPoint);
+    // var color = new THREE.Color(0xffffff);
+    // var asHSL = {};
+    // color.getHSL(asHSL);
+    // color.setHSL(asHSL.h, asHSL.s, asHSL.l * Math.random());
+    // geom.colors.push(color);
+    // // geom.colors.push(color);
+    // cloud = new THREE.Points(geom, material);
+    // gg.add(cloud);
+    // scene.add(cloud);
+
+    // var amount = 10;
+    // var radius = 2000;
+    // // var box_group = new THREE.Group();
+    // var positions = new Float32Array( amount * 3 );
+    // var colors = new Float32Array( amount * 3 );
+    // var sizes = new Float32Array( amount * 1 );
+    // var vertex = new THREE.Vector3();
+    // var color = new THREE.Color( 0xffffff );
+    // for (i = 0; i < amount; i++) {
+    //   // vertex.x = 0.09758;
+    //   // vertex.y = -0.50548;
+    //   // vertex.z = 0;
+    //   vertex.x = ( Math.random() * 2 - 1 ) * radius;
+    //   vertex.y = ( Math.random() * 2 - 1 ) * radius;
+    //   vertex.z = ( Math.random() * 2 - 1 ) * radius;
+    //   vertex.toArray( positions, i * 3 );
+    //   if ( vertex.x < 0 ) {
+    //     color.setHSL( 0.5 + 0.1 * ( i / amount ), 0.7, 0.5 );
+    //   } else {
+    //     color.setHSL( 0.0 + 0.1 * ( i / amount ), 0.9, 0.5 );
+    //   }
+    //   color.toArray( colors, i * 3 );
+    //   sizes[ i ] = 10;
+    // }
+    // var geometry = new THREE.BufferGeometry();
+    // geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+    // geometry.addAttribute( 'customColor', new THREE.BufferAttribute( colors, 3 ) );
+    // geometry.addAttribute( 'size', new THREE.BufferAttribute( sizes, 1 ) );
+    // var material = new THREE.ShaderMaterial( {
+
+    //   uniforms: {
+    //     color: { value: new THREE.Color( 0xffffff ) }
+    //   },
+
+    //   blending: THREE.AdditiveBlending,
+    //   depthTest: false,
+    //   transparent: true
+
+    // } );
+    // sphere = new THREE.Points( geometry, material );
+    // // box_group.add(sphere);
+    // scene.add( sphere );
+
     var image_id = path[0][0];
     matt.loadCubeTexture(cube_urls(scan, image_id)).then(function(texture){
       scene.background = texture;
@@ -260,6 +506,46 @@ function move_to(image_id, isInitial=false) {
   if (playing) {
     step_forward();
   }
+}
+
+function set_camera_pose(matrix4d, height){
+  matrix4d.decompose(camera_pose.position, camera_pose.quaternion, camera_pose.scale);
+  camera_pose.position.z += height;
+  camera_pose.rotateX(Math.PI); // convert matterport camera to webgl camera
+}
+
+function set_camera_position(matrix4d, height) {
+  var ignore_q = new THREE.Quaternion();
+  var ignore_s = new THREE.Vector3();
+  matrix4d.decompose(camera_pose.position, ignore_q, ignore_s);
+  camera_pose.position.z += height;
+}
+
+function get_camera_pose(){
+  camera.updateMatrix();
+  camera_pose.updateMatrix();
+  var m = camera.matrix.clone();
+  m.premultiply(camera_pose.matrix);
+  return m;
+}
+
+function get_pose_string(){
+  var m = get_camera_pose();
+
+  // calculate heading
+  var rot = new THREE.Matrix3();
+  rot.setFromMatrix4(m);
+  var cam_look = new THREE.Vector3(0,0,1); // based on matterport camera
+  cam_look.applyMatrix3(rot);
+  heading = -Math.PI/2.0 -Math.atan2(cam_look.y, cam_look.x);
+  if (heading < 0) {
+    heading += 2.0*Math.PI;
+  }
+
+  // calculate elevation
+  elevation = -Math.atan2(cam_look.z, Math.sqrt(Math.pow(cam_look.x,2) + Math.pow(cam_look.y,2)))
+  
+  return scan+"_"+curr_image_id+"_"+heading+"_"+elevation;
 }
 
 function take_action(dest) {
@@ -353,4 +639,5 @@ function animate() {
   id = requestAnimationFrame( animate );
   TWEEN.update();
 }
+
 
