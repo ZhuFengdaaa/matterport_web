@@ -35,6 +35,7 @@ var $play=document.getElementById('play');
 var $download=document.getElementById('download');
 var $canvas=document.getElementById('skybox');
 
+
 // set the initial input-text values to the width/height vars
 $ix.value=ix;
 $width.value=SIZE_X;
@@ -42,9 +43,9 @@ $height.value=SIZE_Y;
 $vfov.value=VFOV;
 
 // used for drawing bounding box
-var startPoint = new THREE.Vector3();
-var endPoint = new THREE.Vector3();
-var box_geometry = new THREE.Geometry();
+// var startPoint = new THREE.Vector3();
+// var endPoint = new THREE.Vector3();
+// var box_geometry = new THREE.Geometry();
 /*
  * Create a Rectangle
  */
@@ -170,12 +171,100 @@ function initialize(){
     });
   });
 
-  // canvas.addEventListener('mousedown', mouseDown, false);
+  var canvas = document.getElementById("skybox");
+  canvas.addEventListener('mousedown', onMouseDown, false);
   // canvas.addEventListener('mouseup', mouseUp, false);
-  // canvas.addEventListener('mousemove', mouseMove, false);
+  // canvas.addEventListener('mousemove', getIntersects, false);
 }
 var matt = new Matterport3D("");
 initialize();
+
+/* 获取射线与平面相交的交点 */
+function getIntersects(event) {
+
+    var raycaster = new THREE.Raycaster();
+    // var mouse = new THREE.Vector2();
+    var mouse = new THREE.Vector3();
+
+    // mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    // mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    mouse.set(
+      ( event.clientX / window.innerWidth ) * 2 - 1,
+      - ( event.clientY / window.innerHeight ) * 2 + 1,
+      0.5 );
+
+    //向量
+    var normal = new THREE.Vector3(0, 0, 1);
+    /* 创建平面 */
+    var planeGround = new THREE.Plane(normal, 0);
+
+    /* 从相机发出一条射线经过鼠标点击的位置 */
+    raycaster.setFromCamera(mouse, camera);
+
+    /* 获取射线 */
+    var ray = raycaster.ray;
+
+    /* 计算相机到射线的对象，可能有多个对象，返回一个数组，按照距离相机远近排列 */
+    var intersects = ray.intersectPlane(planeGround);
+
+    intersects.z = 0;
+    console.log("x:"+intersects.x+" y:"+intersects.y+" z:"+intersects.z);
+
+    /* 返回向量 */
+    return intersects;
+
+}
+
+/* 使用mousedown的时候可以判断出点击的鼠标左右键之分 */
+var pointsArray = [];
+var window_mouse = true;
+function onMouseDown(event) {
+  var canvas = document.getElementById("skybox");
+
+  /* 获取相机发出的射线与 Plane 相交点*/
+  var intersects = getIntersects(event);
+
+  /* 存放网格的三维坐标 */
+  var vector3_x, vector3_z;
+
+  /* 鼠标左键按下时，创建点和线段 */
+  if (event.button === 0) {
+    if (!window_mouse){
+
+        canvas.addEventListener('mousedown', mouseDown, false);
+
+        /* 依据 windwo_mouse 标识避免事件的重复添加 */
+        window_mouse = true;
+
+    }
+
+    /* 若交点此时在平面之内则创建点（Points） */
+    var pointsGeometry = new THREE.Geometry();
+    pointsGeometry.vertices.push(intersects);
+
+    var pointsMaterial = new THREE.PointsMaterial({color:0xff0000, size: 0.3});
+    var points = new THREE.Points(pointsGeometry, pointsMaterial);
+
+    pointsArray.push(points);
+    console.log(pointsArray.length);
+
+    /* 创建线段 */
+    var lineGeometry = new THREE.Geometry();
+    var lineMaterial = new THREE.LineBasicMaterial({color: 0x00ff00});
+
+    if (pointsArray.length >= 2) {
+
+        lineGeometry.vertices.push(pointsArray[0].geometry.vertices[0], pointsArray[1].geometry.vertices[0]);
+
+        var line = new THREE.Line(lineGeometry, lineMaterial);
+        pointsArray.shift();
+        scene.add(line);
+
+    }
+    scene.add(points);
+    render();
+  }
+}
 
 // function mouseDown(event) {
 //   // rect.startX = e.pageX - this.offsetLeft;
