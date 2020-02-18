@@ -188,12 +188,23 @@ function getIntersects(event) {
 
     // mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     // mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    mouse.set(
-      ( event.clientX / window.innerWidth ) * 2 - 1,
-      - ( event.clientY / window.innerHeight ) * 2 + 1,
+
+  // mouse.set(
+  //     ( event.clientX / window.innerWidth ) * 2 - 1,
+  //     - ( event.clientY / window.innerHeight ) * 2 + 1,
+  //     0.5 );
+
+  var canvas = document.getElementById("skybox");
+
+  canvasPosition = $(canvas).position();
+
+  mouse.set(
+      ((event.clientX - canvasPosition.left) / canvas.width) * 2 - 1,
+      - ((event.clientY - canvasPosition.top) / canvas.height) * 2 + 1,
       0.5 );
 
-    //向量
+
+  //向量
     var normal = new THREE.Vector3(0, 0, 1);
     /* 创建平面 */
     var planeGround = new THREE.Plane(normal, 0);
