@@ -5,3 +5,4 @@ app/connectivity
 app/data
 .idea
 .DS_Store
+server/node_moduls
