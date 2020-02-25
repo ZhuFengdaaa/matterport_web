@@ -30,14 +30,23 @@ Now you can start a web server to check out the various visualizations and AMT u
 gulp
 ```
 
-## Trajectory Visualization
+## Server
 
-`trajectory.html` is an application for viewing first-person trajectories and downloading them as videos:
-- Use `Choose File` to select a trajectory file in the leaderboard submission format. By default, the included file `val_unseen_shortest_agent.json` is selected (containing the shortest paths to goal in the unseen validation set).
-- `Play` visualizes the trajectory with the provided index.
-- `Download video` visualizes the trajectory then downloads it as a .webm video.
-- Camera parameters can be set with the `Width`, `Height` and `V-FOV` fields.
-- Change the `Index` field to view different trajectories from the file.
+change dir to ./server, install the dependencies:
+```
+npm install
+```
+
+Then run the server:
+```
+node server.js
+```
+
+## Collect bounding box
+
+`boundingbox.html` is an application for collecting bounding boxes for objects:
+- 右键点击图中的紫色圆柱体到达下一个viewpoint。
+- 若要在该viewpoint中进行标注，到达viewpoint之后注意不能用鼠标移动相机，点击“start draw”开始标注，先左键点击要标注的bbox的左上角的点，然后再左键点击右下角的点，系统会自动生成一个框，若标注错误，点击“reset”按钮，然后再点击“start draw”重新开始标注。标注框生成后点击“save”按钮保存，会弹出输入object name的文本框，在文本框中输入object的名称，并点确定。得到“save already”的弹窗框即为标注成功。
 
 
 ## AMT Interfaces

@@ -189,6 +189,8 @@ function saveDraw(){
   var right_top = scene.getObjectByName('right_top');
   var left_bottom = scene.getObjectByName('left_bottom');
 
+  var obj_name = prompt('Please input the name of the object:');
+
   var m = get_camera_pose();
 
   // calculate heading
@@ -229,7 +231,8 @@ function saveDraw(){
       "x": mouseArray[1].x,
       "y": mouseArray[1].y,
       "z": mouseArray[1].z
-    }
+    },
+    "obj_name": obj_name
   }
   $.ajax({
     type: "POST",
