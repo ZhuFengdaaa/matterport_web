@@ -206,6 +206,9 @@ function saveDraw(){
   // calculate elevation
   elevation = -Math.atan2(cam_look.z, Math.sqrt(Math.pow(cam_look.x,2) + Math.pow(cam_look.y,2)))
 
+  if (mouseArray[0] == undefined || mouseArray[1] == undefined || mouseArray[2] == undefined || mouseArray[3] == undefined) {
+    alert("请标注bbox")
+  }
   var boundingbox = {
     "scan": scan,
     "image_id": curr_image_id,
