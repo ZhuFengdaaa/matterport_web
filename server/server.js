@@ -76,6 +76,19 @@ function readBbox(scan, image_id, heading, elevation) {
 	return null;
 }
 
+function readBboxByImage(scan, image_id) {
+	var data = fs.readFileSync('../app/bbox/' + scan + '_boundingbox.json');
+	var bboxes = data.toString();
+	bboxes = JSON.parse(bboxes);
+	for (var i in bboxes) {
+		var bbox = bboxes[i];
+		if (bbox['scan'] == scan && bbox['image_id'] == image_id){
+			return bbox;
+		}
+	}
+	return null;
+}
+
 app.get('/firstStart/:scanId', function(req, res) {
 	var files = getImageFiles('../app/data/v1/scans/' + req.params.scanId + '/matterport_skybox_images/');
 	if (files.length > 0) {
@@ -102,6 +115,13 @@ app.post('/getPoint', function(req, res) {
 	var bbox = readBbox(scan, image_id, heading, elevation);
 	res.json(bbox);
 });
+
+app.post('/getPointByImage', function(req, res) {
+	var scan = req.body.scan;
+	var image_id = req.body.image_id;
+	var bbox = readBboxByImage(scan, image_id);
+	res.json(bbox);
+})
 
 app.listen(7878, function afterListen() {
     console.log('express running on http://localhost:7878');

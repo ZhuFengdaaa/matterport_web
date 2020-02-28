@@ -1,0 +1,91 @@
+</!DOCTYPE html>
+<html>
+<head>
+	<meta charset=utf-8>
+	<title>Instructions</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+<body>
+	<div class="page-header">
+		<h1>Instructions for collecting data</h1>
+	</div>
+	<div style="font-size: 18px; margin: 30">
+		<p><a href="collect-instr.html" target="_blank">Cilck here to start.</a></p>
+		<p>You will see a series of panoramic photos taken while moving from a <strong>goal location</strong> to other locations in a building. <strong>Your task is to write descriptions of goal object so that a smart robot can find the goal location</strong>. The robot understands language and recognizes objects about as well as a typical person. However, you should assume that the robot is visiting this building for the first time.</p>
+		<p>For your reference, the goal object is indicated by <strong><span style="color:#FF0000">red</span></strong> bounding box, the path to other place is indicated by <strong><span style="color:#0000FF;">blue</span></strong> markers.</p>
+		<ul>
+			<li>You may not see the <strong><span style="color:#0000FF;">blue</span></strong> marker sometimes - when it&#39;s under your feet.</li>
+			<li><strong>These markers are not visible to the robot</strong>, and should not be mentioned in your descriptions.</li>
+		</ul>
+		<p>Abundant descriptions will ensure that the robot arrives <strong>within 10 meters</strong> of the goal object. Therefore, we suggest:</p>
+
+		<ul>
+			<li><strong>Spelling and punctuation is important.</strong>&nbsp;Please use full sentences with punctuation (,.) and correct spelling.</li>
+			<li><strong>Focus on the goal object</strong>, i.e., attributes of the goal object, relations between this object and other objects nearby, geological information</li>
+		</ul>
+
+		<p>Mouse Controls:</p>
+
+		<ol>
+			<li><strong>Left-click and drag the panoramic image</strong> to look around.</li>
+			<li><strong>Right-click on a blue marker</strong> to move to that position.</li>
+		</ol>
+
+		<p>Before you start, <strong>please watch examples below</a></strong>, which will help you complete these tasks efficiently.</p>
+
+		<p>&nbsp;</p>
+
+		<p><strong>Note: <span style="color:#FF0000;">This task is not suitable for devices with small screens or touch screen devices</span></strong>. Recommended browsers are Chrome, Firefox and Safari (not Internet Explorer).</p>
+
+		<p style="font-size: 13px;">We estimate that on average each HIT to take around 5 minutes to complete.</p>
+
+		<img src="images/flower.png" width="1000" height="400">
+		<p><strong>1. Describe its color, pose and a third attribute of the target.</strong></p>
+		<p>White and blooming flowers with a slightly inclined stem.</p>
+		<p><strong>2. Find at least two objects related to the target and describe their relationship.</strong></p>
+		<p>They are set in a white flowerpot, above a black table surrounded by four grey chairs.</p>
+		<p><strong>3. Explore in simulator and describe the region where the target is placed within one sentence.</strong></p>
+		<p>The flowers are set in the dining room.</p>
+		<p><strong>4. Explore nearby areas in simulator and describe the nearby regions within one sentence.</strong></p>
+		<p>The flowers are in front of the stairs and near a living room.</p>
+		<p><strong>5. Rewrite all sentences within three sentences:</strong></p>
+		<p>In the dining room, there are some white and blooming flowers with a slightly inclined stem. They are set in a white flowerpot above a black table surrounded by four grey chairs in front of the stairs and near the living room.</p>
+
+		<img src="images/stool.png" width="1000" height="400">
+		<p><strong>1. Describe its color, pose and a third attribute of the target.</strong></p>
+		<p>Black, tall and metal</p>
+		<p><strong>2. Find at least two objects related to the target and describe their relationship.</strong></p>
+		<p>The stools are under blue lights, behind a yellow sofa and in front of a table with a white desktop.</p>
+		<p><strong>3. Explore in simulator and describe the region where the target is placed within one sentence.</strong></p>
+		<p>The stools are set in a barroom by the stairs.</p>
+		<p><strong>4. Explore nearby areas in simulator and describe the nearby regions within one sentence.</strong></p>
+		<p>The stools are set next to a corridor and near a living room.</p>
+		<p><strong>5. Rewrite all sentences within three sentences:</strong></p>
+		<p>In a barroom next to a corridor, there are two black stools set by the stairs. They are set in in front of a brown table with white desktop by the stairs and near a living room.</p>
+	</div>
+	<style type="text/css">#collapseTrigger{
+	  color:#fff;
+	  display: block;
+	  text-decoration: none;
+	}
+	#submitButton{
+	  white-space: normal;
+	}
+	.image{
+	  margin-bottom: 15px;
+	}
+	.radio:first-of-type{
+	  margin-top: -5px;
+	}
+	img.loading {
+	  background: transparent url(http://thinkfuture.com/wp-content/uploads/2013/10/loading_spinner.gif) no-repeat scroll center center;
+	  min-height: 200px;
+	  min-width: 200px;
+	}
+	</style>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.10.2/d3.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/87/three.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.3.5/Tween.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</body>
+</html>
