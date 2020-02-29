@@ -8,7 +8,7 @@ var playing = false;
 var scan;
 var curr_image_id;
 var start_heading = 0;
-var start_pose;
+var start_pose, start_camera_pose;
 
 // declare a bunch of variable we will need later
 var camera, camera_pose, scene, controls, renderer, connections, id_to_ix, world_frame, cylinder_frame, cubemap_frame;
@@ -29,7 +29,10 @@ matt.loadJson('bbox/' + scan + '_boundingbox.json').then(function(data){
   curr_image_id = bbox['image_id'];
   start_heading = bbox['heading'];
   start_pose = bbox['pose'];
+  start_rotation = bbox['cam_rotation'];
   skybox_init();
+  console.log(get_camera_pose())
+  console.log(camera.rotation)
   load_connections(scan, curr_image_id);
 });
 
@@ -201,21 +204,38 @@ function move_to(image_id, isInitial=false) {
   var ignore = new THREE.Vector3();
   inv.decompose(ignore, world_frame.quaternion, world_frame.scale);
   world_frame.updateMatrix();
-  var cam_pose = cylinder_frame.getObjectByName(image_id);
   if (isInitial){
-  	var m = new THREE.Matrix4();
+  	// var m1 = new THREE.Matrix4();
+   //  m1.fromArray(start_camera);
+   //  m1.transpose(); // switch row major to column major to suit three.js
+   //  var m2 = new THREE.Matrix4();
+   //  m2.fromArray(start_camera_pose);
+   //  m2.transpose();
+    var inv = new THREE.Matrix4();
+    var m = new THREE.Matrix4();
     m.fromArray(start_pose);
-    m.transpose(); // switch row major to column major to suit three.js
-   //  var inv = new THREE.Matrix4();
-   //  inv.getInverse(m);
-   //  var ignore = new THREE.Vector3();
-   //  inv.decompose(ignore, world_frame.quaternion, world_frame.scale);
-   //  world_frame.updateMatrix();
+    // m.transpose();
+    // var m1 = m.clone();
+    // inv.getInverse(m1);
+    // set_camera_pose(m, 0);
+    // camera.matrix.fromArray(JSON.parse(start_cam)).transpose();
+    m.decompose(camera.position, camera.quaternion, camera.scale);
+    // camera.rotation.x = start_rotation['_x'];
+    // camera.rotation.y = start_rotation['_y'];
+    // camera.rotation.z = start_rotation['_z'];
+    // camera.rotateZ(Math.PI);
+    // var ignore = new THREE.Vector3();
+    // inv.decompose(ignore, world_frame.quaternion, world_frame.scale);
+    // world_frame.updateMatrix();
+
+    // set_camera_pose(m2, 0);
+    // camera.matrix.set(m1);
+    // camera.updateMatrixWorld(true);
     // set_camera_pose(cam_pose.matrix, cam_pose.height);
-    set_camera_pose(m, 2);
     get_boundingbox(image_id);
   } else {
   	// var inv = new THREE.Matrix4();
+  	// var cam_pose = cylinder_frame.getObjectByName(image_id);
    //  inv.getInverse(m);
    //  var ignore = new THREE.Vector3();
    //  inv.decompose(ignore, world_frame.quaternion, world_frame.scale);
