@@ -214,6 +214,7 @@ function move_to(image_id, isInitial=false) {
     var inv = new THREE.Matrix4();
     var m = new THREE.Matrix4();
     m.fromArray(start_pose);
+    // var tcamera = camera.clone();
     // m.transpose();
     // var m1 = m.clone();
     // inv.getInverse(m1);
@@ -233,6 +234,7 @@ function move_to(image_id, isInitial=false) {
     // camera.updateMatrixWorld(true);
     // set_camera_pose(cam_pose.matrix, cam_pose.height);
     get_boundingbox(image_id);
+    // set_camera_pose(cam_pose.matrix, cam_pose.height);
   } else {
   	// var inv = new THREE.Matrix4();
   	// var cam_pose = cylinder_frame.getObjectByName(image_id);
@@ -382,8 +384,23 @@ function get_boundingbox(image_id) {
         lineGeometry.vertices.push(right_bottom_vec, left_bottom_vec);
         lineGeometry.vertices.push(left_top_vec);
 
+	    // var m = new THREE.Matrix4();
+	    // m.fromArray(start_pose);
+	    // m.transpose();
+	    // var ignore_q = new THREE.Vector3();
+	    // var ignore_s = new THREE.Vector3();
+	    // var lineGroup = new THREE.Group();
+
         var line = new THREE.Line(lineGeometry, lineMaterial);
         line.name = curr_image_id + '_line';
+        // line.position.set(camera.position.clone());
+        // line.applyMatrix(m);
+        // lineGroup.add(line);
+        // m.decompose(line.position, ignore_q, ignore_s);
+  //       line.position.copy( camera.position );
+		// line.rotation.copy( camera.rotation );
+		// line.updateMatrix();
+		// line.translateZ( - 10 );
         scene.add(line);
         render();
       }
