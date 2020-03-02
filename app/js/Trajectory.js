@@ -189,7 +189,15 @@ function saveDraw(){
   var right_top = scene.getObjectByName('right_top');
   var left_bottom = scene.getObjectByName('left_bottom');
 
+  if (mouseArray[0] == undefined || mouseArray[1] == undefined || mouseArray[2] == undefined || mouseArray[3] == undefined) {
+    return; 
+  }
+
   var obj_name = prompt('Please input the name of the object:');
+  if (obj_name == undefined || obj_name == ""){
+    alert("名字不合法");
+    return;
+  }
 
   var m = get_camera_pose();
   // var [m1, m2] = get_camera_and_pose_matrix();
@@ -207,9 +215,7 @@ function saveDraw(){
   // calculate elevation
   elevation = -Math.atan2(cam_look.z, Math.sqrt(Math.pow(cam_look.x,2) + Math.pow(cam_look.y,2)))
 
-  if (mouseArray[0] == undefined || mouseArray[1] == undefined || mouseArray[2] == undefined || mouseArray[3] == undefined) {
-    alert("请标注bbox")
-  }
+  
 
   var camera_matrix, camera_pose_matrix
   var matrix_list = get_all_four_matrix()
