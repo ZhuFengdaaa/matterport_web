@@ -91,6 +91,28 @@ function readBboxByImage(scan, image_id) {
 	return null;
 }
 
+function writeInstr(params, userName) {
+	instr_path = '../app/' + userName + '/' + params.scan + '_instructions.json';
+	if (!fs.existsSync(instr_path)) {
+    	fs.writeFileSync(instr_path, '[]')
+    }
+    var data = fs.readFileSync(instr_path);
+    var instr = data.toString();
+    instr = JSON.parse(instr);
+    instr.push(params);
+    var str = JSON.stringify(instr);
+    fs.writeFileSync(instr_path,str);
+    console.log('----------write success-------------');
+    return true;
+}
+
+function mkdirUser(userName) {
+	dir = '../app/' + userName;
+	if(!fs.existsSync(dir))
+		fs.mkdirSync('../app/' + userName);
+	return true;
+}
+
 app.get('/firstStart/:scanId', function(req, res) {
 	var files = getImageFiles('../app/data/v1/scans/' + req.params.scanId + '/matterport_skybox_images/');
 	if (files.length > 0) {
@@ -123,6 +145,18 @@ app.post('/getPointByImage', function(req, res) {
 	var image_id = req.body.image_id;
 	var bbox = readBboxByImage(scan, image_id);
 	res.json(bbox);
+})
+
+app.post('/saveInstruction/:userName', function(req, res) {
+	console.log(req.params.userName)
+	console.log(req.body);
+	var status = writeInstr(req.body, req.params.userName);
+	res.json({'status': status});
+})
+
+app.get('/user/:userName', function(req, res) {
+	var status = mkdirUser(req.params.userName);
+	res.json({'status': status});
 })
 
 app.listen(7878, function afterListen() {

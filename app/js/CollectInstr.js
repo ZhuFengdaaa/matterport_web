@@ -3,6 +3,9 @@ const server_url = ' http://localhost:7878/';
 //var ix = ${ix}   // UNCOMMENT THIS LINE WHEN INTEGRATING WITH AMT
 // var ix = location.search.split('ix=')[1];   // UNCOMMENT THIS LINE TO RUN UI LOCALLY WITH GULP
 var ix = 0;
+var ix_max = 0;
+var bbox_ix = 0;
+var bbox_max = 0;
 var step = 0;
 var playing = false;
 var scan;
@@ -13,28 +16,79 @@ var start_pose, start_camera_pose;
 // declare a bunch of variable we will need later
 var camera, camera_pose, scene, controls, renderer, connections, id_to_ix, world_frame, cylinder_frame, cubemap_frame;
 var mouse = new THREE.Vector2();
-var id;
+var gt, id, scan, bboxes;
 
 var SIZE_X = 1140;
 var SIZE_Y = 650;
 var VFOV = 80;
 var ASPECT = SIZE_X/SIZE_Y;
 
-var scan = "vyrNrziPKCB";
+var userName;
+
+$(document).ready(function() {
+	var user_name = prompt('Please input the your user name:');
+    while (user_name == undefined || user_name == ""){
+      user_name = prompt('Please input the your user name:');
+    }
+    userName = user_name;
+    $.ajax({
+          type: "get",
+          url: server_url + 'user/' + user_name,
+          dataType: "json"
+     });
+})
 
 var matt = new Matterport3D("");
-matt.loadJson('bbox/' + scan + '_boundingbox.json').then(function(data){
-  ix_max = data.length;
-  var bbox = data[ix.toString()];
-  curr_image_id = bbox['image_id'];
-  start_heading = bbox['heading'];
-  start_pose = bbox['pose'];
-  start_rotation = bbox['cam_rotation'];
-  skybox_init();
-  console.log(get_camera_pose())
-  console.log(camera.rotation)
-  load_connections(scan, curr_image_id);
-});
+initialize();
+
+function initialize(){
+  d3.queue()
+  .defer(d3.json, "/R2Rdata/R2R_val_seen.json")
+  .defer(d3.json, "/R2Rdata/R2R_val_unseen.json")
+  .defer(d3.json, "/R2Rdata/R2R_test.json")
+  .await(function(error, d1, d2, d3) {
+    if (error) {
+      console.error(error);
+    }
+    else {
+      gt = d1.concat(d2).concat(d3);
+      ix_max = gt.length;
+      
+      id = gt[ix]['scan'];
+      scan = id;
+      matt.loadJson('bbox/' + scan + '_boundingbox.json').then(function(data){
+      	bboxes = data;
+      	draw();
+      })
+    }
+  });
+}
+
+function draw() {
+	bbox_max = bboxes.length;
+  	var bbox = bboxes[bbox_ix.toString()];
+  	curr_image_id = bbox['image_id'];
+  	skybox_init();
+  	load_connections(scan, curr_image_id);
+}
+
+function next_bbox() {
+	bbox_ix += 1;
+	if (bbox_ix < bbox_max) {
+		draw();
+	} else {
+		ix += 1;
+		if (ix < ix_max) {
+			bbox_ix = 0;
+			id = gt[ix]['scan'];
+		    scan = id;
+		    matt.loadJson('bbox/' + scan + '_boundingbox.json').then(function(data){
+		     bboxes = data;
+		     draw();
+		    })
+		}
+	}
+}
 
 function get_random_property() {
     var rand1 = Math.random();
@@ -205,43 +259,9 @@ function move_to(image_id, isInitial=false) {
   inv.decompose(ignore, world_frame.quaternion, world_frame.scale);
   world_frame.updateMatrix();
   if (isInitial){
-  	// var m1 = new THREE.Matrix4();
-   //  m1.fromArray(start_camera);
-   //  m1.transpose(); // switch row major to column major to suit three.js
-   //  var m2 = new THREE.Matrix4();
-   //  m2.fromArray(start_camera_pose);
-   //  m2.transpose();
-    var inv = new THREE.Matrix4();
-    var m = new THREE.Matrix4();
-    m.fromArray(start_pose);
-    // var tcamera = camera.clone();
-    // m.transpose();
-    // var m1 = m.clone();
-    // inv.getInverse(m1);
-    // set_camera_pose(m, 0);
-    // camera.matrix.fromArray(JSON.parse(start_cam)).transpose();
-    m.decompose(camera.position, camera.quaternion, camera.scale);
-    // camera.rotation.x = start_rotation['_x'];
-    // camera.rotation.y = start_rotation['_y'];
-    // camera.rotation.z = start_rotation['_z'];
-    // camera.rotateZ(Math.PI);
-    // var ignore = new THREE.Vector3();
-    // inv.decompose(ignore, world_frame.quaternion, world_frame.scale);
-    // world_frame.updateMatrix();
-
-    // set_camera_pose(m2, 0);
-    // camera.matrix.set(m1);
-    // camera.updateMatrixWorld(true);
-    // set_camera_pose(cam_pose.matrix, cam_pose.height);
+    set_camera_pose(cam_pose.matrix, cam_pose.height);
     get_boundingbox(image_id);
-    // set_camera_pose(cam_pose.matrix, cam_pose.height);
   } else {
-  	// var inv = new THREE.Matrix4();
-  	// var cam_pose = cylinder_frame.getObjectByName(image_id);
-   //  inv.getInverse(m);
-   //  var ignore = new THREE.Vector3();
-   //  inv.decompose(ignore, world_frame.quaternion, world_frame.scale);
-   //  world_frame.updateMatrix();
     set_camera_position(cam_pose.matrix, cam_pose.height);
   }
   render();
@@ -338,81 +358,116 @@ function take_action(image_id) {
   rotate_tween.start();
 }
 
+function draw_bboxes(data)
+{
+  console.log(data)
+  var cubemap_frame_matrix = new THREE.Matrix4();
+  cubemap_frame_matrix.fromArray(data["cubemap_frame_matrix"])
+  cubemap_frame_matrix.decompose(cubemap_frame.position, cubemap_frame.quaternion, cubemap_frame.scale);
+  cubemap_frame.updateMatrix();
+  var world_frame_matrix = new THREE.Matrix4();
+  world_frame_matrix.fromArray(data["world_frame_matrix"])
+  world_frame_matrix.decompose(world_frame.position, world_frame.quaternion, world_frame.scale);
+  world_frame.updateMatrix();
+  var camera_pose_matrix = new THREE.Matrix4();
+  camera_pose_matrix.fromArray(data["camera_pose_matrix"])
+  camera_pose_matrix.decompose(camera_pose.position, camera_pose.quaternion, camera_pose.scale);
+  camera_pose.updateMatrix();
+  var camera_matrix = new THREE.Matrix4();
+  camera_matrix.fromArray(data["camera_matrix"])
+  camera_matrix.decompose(camera.position, camera.quaternion, camera.scale);
+  camera.updateMatrix();
+  render();
+  var left_top = data.mouse_left_top;
+  var right_bottom = data.mouse_right_bottom;
+  var right_top = data.mouse_right_top;
+  var left_bottom = data.mouse_left_bottom;
+  var left_top_vec = new THREE.Vector3();
+  left_top_vec.x = left_top.x;
+  left_top_vec.y = left_top.y;
+  left_top_vec.z = left_top.z;
+  var right_bottom_vec = new THREE.Vector3();
+  right_bottom_vec.x = right_bottom.x;
+  right_bottom_vec.y = right_bottom.y;
+  right_bottom_vec.z = right_bottom.z;
+  var right_top_vec = new THREE.Vector3();
+  right_top_vec.x = right_top.x;
+  right_top_vec.y = right_top.y;
+  right_top_vec.z = right_top.z;
+  var left_bottom_vec = new THREE.Vector3();
+  left_bottom_vec.x = left_bottom.x;
+  left_bottom_vec.y = left_bottom.y;
+  left_bottom_vec.z = left_bottom.z;
+  left_top_vec = left_top_vec.unproject(camera);
+  right_bottom_vec = right_bottom_vec.unproject(camera);
+  right_top_vec = right_top_vec.unproject(camera);
+  // var widthHalf = 0.5*renderer.context.canvas.width;
+  // var heightHalf = 0.5*renderer.context.canvas.height;
+  // var right_top_vec_copy = right_top_vec.clone()
+  // var proj = right_top_vec_copy.project(camera);
+  // proj.x = Math.round( proj.x * widthHalf  ) + widthHalf;
+  // proj.y = Math.round( -proj.y * heightHalf  ) + heightHalf;
+  // console.log(proj.x, proj.y)
+  left_bottom_vec = left_bottom_vec.unproject(camera);
+
+  var lineGeometry = new THREE.Geometry();
+  var lineMaterial = new THREE.LineBasicMaterial({color: 0xff0000});
+
+  lineGeometry.vertices.push(left_top_vec, right_top_vec);
+  lineGeometry.vertices.push(right_bottom_vec, left_bottom_vec);
+  lineGeometry.vertices.push(left_top_vec);
+
+  var line = new THREE.Line(lineGeometry, lineMaterial);
+  line.name = curr_image_id + '_line';
+  scene.add(line);
+  render();
+}
+
 function get_boundingbox(image_id) {
-  var roomInfo = {
-    'scan': scan,
-    'image_id': image_id
-  }
-  $.ajax({
-    type: "POST",
-    url: server_url + "getPointByImage/",
-    contentType: "application/json",
-    dataType:"json",
-    data:JSON.stringify(roomInfo),
-    success:function (data) {
-      console.log(data);
-      if(data != null) {
-        var left_top = data.mouse_left_top;
-        var right_bottom = data.mouse_right_bottom;
-        var right_top = data.mouse_right_top;
-        var left_bottom = data.mouse_left_bottom;
-        var left_top_vec = new THREE.Vector3();
-        left_top_vec.x = left_top.x;
-        left_top_vec.y = left_top.y;
-        left_top_vec.z = left_top.z;
-        var right_bottom_vec = new THREE.Vector3();
-        right_bottom_vec.x = right_bottom.x;
-        right_bottom_vec.y = right_bottom.y;
-        right_bottom_vec.z = right_bottom.z;
-        var right_top_vec = new THREE.Vector3();
-        right_top_vec.x = right_top.x;
-        right_top_vec.y = right_top.y;
-        right_top_vec.z = right_top.z;
-        var left_bottom_vec = new THREE.Vector3();
-        left_bottom_vec.x = left_bottom.x;
-        left_bottom_vec.y = left_bottom.y;
-        left_bottom_vec.z = left_bottom.z;
-        left_top_vec = left_top_vec.unproject(camera);
-        right_bottom_vec = right_bottom_vec.unproject(camera);
-        right_top_vec = right_top_vec.unproject(camera);
-        left_bottom_vec = left_bottom_vec.unproject(camera);
+  var last_line = scene.getObjectByName(curr_image_id + '_line');
+  scene.remove(last_line);
 
-        var lineGeometry = new THREE.Geometry();
-        var lineMaterial = new THREE.LineBasicMaterial({color: 0xff0000});
+  var bbox = bboxes[bbox_ix]
+  draw_bboxes(bbox);
+  var target_name = document.getElementById('target_name');
+  target_name.innerText = bbox['obj_name'];
+  var two_properties = get_random_property();
+  var fist_inst_label = document.getElementById('two_pro');
+  fist_inst_label.innerText = "1. Describe its " + two_properties[0] + ", " + two_properties[1] + " and a third attribute of the target.";
+}
 
-        lineGeometry.vertices.push(left_top_vec, right_top_vec);
-        lineGeometry.vertices.push(right_bottom_vec, left_bottom_vec);
-        lineGeometry.vertices.push(left_top_vec);
-
-	    // var m = new THREE.Matrix4();
-	    // m.fromArray(start_pose);
-	    // m.transpose();
-	    // var ignore_q = new THREE.Vector3();
-	    // var ignore_s = new THREE.Vector3();
-	    // var lineGroup = new THREE.Group();
-
-        var line = new THREE.Line(lineGeometry, lineMaterial);
-        line.name = curr_image_id + '_line';
-        // line.position.set(camera.position.clone());
-        // line.applyMatrix(m);
-        // lineGroup.add(line);
-        // m.decompose(line.position, ignore_q, ignore_s);
-  //       line.position.copy( camera.position );
-		// line.rotation.copy( camera.rotation );
-		// line.updateMatrix();
-		// line.translateZ( - 10 );
-        scene.add(line);
-        render();
-      }
-    }
-  })
+function saveInstrs(form_k) {
+	console.log($('#tag1').val())
+	if($('#tag1').val() == '' || $('#tag2').val() == '' || $('#tag3').val() == '' || $('#tag4').val() == '' || $('#tag5').val() == '') {
+		alert("please complete the form");
+	} else if (confirm('Sure to save?')) {
+		var instr_form = {
+			"scan": scan,
+			"image_id": curr_image_id,
+			"obj_name": bboxes[ix]['obj_name'],
+			"heading": bboxes[ix]['heading'],
+			"elevation": bboxes[ix]['elevation'],
+			"step1": $('#tag1').val(),
+			"step2": $('#tag2').val(),
+			"step3": $('#tag3').val(),
+			"step4": $('#tag4').val(),
+			"step5": $('#tag5').val()
+		}
+		$.ajax({
+			type: "POST",
+			url: server_url + "saveInstruction/" + userName,
+		    contentType: "application/json",
+		    dataType:"json",
+		    data:JSON.stringify(instr_form),
+		    success:function (data) {
+		      window.confirm('save already');
+		      next_bbox();
+		    }
+		})
+	}
 }
 
 function onChange(){
-  // if (!playing){
-  //   document.getElementById("play").disabled = false;
-  //   document.getElementById("tag1").disabled = false;
-  // }
   render();
 }
 

@@ -10,11 +10,20 @@
 		<div><figure style="display: inline-block; width: 100%;">
           <canvas id="skybox" style="width:auto; display: block; margin: 0 auto;">
         </figure></div>
-        <p><strong>1. Describe its color, pose and a third attribute of the target.</strong></p>
+	</div>
+	<div id="instrs" class="form-group" style="font-size: 18px; margin: 30">
+		<p><strong>Target: <label id="target_name" style="color:#FF0000"></label></strong></p>
+        <p><strong><label for="tag1" id="two_pro">1. Describe its color, pose and a third attribute of the target.</label></strong></p>
+        <textarea class="form-control" id="tag1" name="tag1" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
         <p><strong>2. Find at least two objects related to the target and describe their relationship.</strong></p>
+        <textarea class="form-control" id="tag2" name="tag2" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
         <p><strong>3. Explore in simulator and describe the region where the target is placed within one sentence.</strong></p>
+        <textarea class="form-control" id="tag3" name="tag3" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
         <p><strong>4. Explore nearby areas in simulator and describe the nearby regions within one sentence.</strong></p>
+        <textarea class="form-control" id="tag4" name="tag4" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
         <p><strong>5. Rewrite all sentences within three sentences:</strong></p>
+        <textarea class="form-control" id="tag5" name="tag5" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
+        <button class="btn btn-default" type="button" onclick="saveInstrs()">Submit</button>
 	</div>
 	<style type="text/css">#collapseTrigger{
 	  color:#fff;
