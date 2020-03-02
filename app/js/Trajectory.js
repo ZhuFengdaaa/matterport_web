@@ -648,10 +648,27 @@ function get_boundingbox(image_id) {
       console.log(data);
       if(data != null) {
         console.log("data", data)
+        cubemap_frame.updateMatrix();
+        var cubemap_frame_matrix = cubemap_frame.matrix.clone();
+        world_frame.updateMatrix();
+        var world_frame_matrix = world_frame.matrix.clone();
+        camera_pose.updateMatrix();
+        var camera_pose_matrix = camera_pose.matrix.clone();
+        camera.updateMatrix();
+        var camera_matrix = camera.matrix.clone();
         for (var i in data)
         {
           draw_bboxes(data[i])
         }
+        cubemap_frame_matrix.decompose(cubemap_frame.position, cubemap_frame.quaternion, cubemap_frame.scale);
+        cubemap_frame.updateMatrix();
+        world_frame_matrix.decompose(world_frame.position, world_frame.quaternion, world_frame.scale);
+        world_frame.updateMatrix();
+        camera_pose_matrix.decompose(camera_pose.position, camera_pose.quaternion, camera_pose.scale);
+        camera_pose.updateMatrix();
+        camera_matrix.decompose(camera.position, camera.quaternion, camera.scale);
+        camera.updateMatrix();
+        render()
       }
     }
   })
