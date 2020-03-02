@@ -1,5 +1,5 @@
 
-const server_url = ' http://localhost:7878/';
+const server_url = ' http://192.168.28.28:7878/';
 
 var step = 0;
 // var playing = false;
@@ -210,13 +210,20 @@ function saveDraw(){
   if (mouseArray[0] == undefined || mouseArray[1] == undefined || mouseArray[2] == undefined || mouseArray[3] == undefined) {
     alert("请标注bbox")
   }
+
+  var camera_matrix, camera_pose_matrix
+  var matrix_list = get_all_four_matrix()
+  camera_matrix = matrix_list[0]
+  camera_pose_matrix = matrix_list[1]
+  world_frame_matrix = matrix_list[2]
+  cubemap_frame_matrix = matrix_list[3]
   var boundingbox = {
     "scan": scan,
     "image_id": curr_image_id,
-    "pose": m.elements,
-    // "cam_state": JSON.stringify(camera.matrix.toArray()),
-    // "camera": m1.elements,
-    // "camera_pose": m2.elements,
+    "camera_matrix": camera_matrix.elements,
+    "camera_pose_matrix": camera_pose_matrix.elements,
+    "world_frame_matrix": world_frame_matrix.elements,
+    "cubemap_frame_matrix": cubemap_frame_matrix.elements,
     "cam_rotation": camera.rotation,
     "heading": heading,
     "elevation": elevation,
@@ -255,6 +262,7 @@ function saveDraw(){
 
   resetDraw();
   get_boundingbox(curr_image_id);
+  render()
 }
 
 function initialize(){
@@ -285,7 +293,7 @@ function getIntersects(event) {
 
   canvasPosition = $(canvas).position();
 
-  mouse.set( 
+  mouse.set(
       ((event.clientX - canvasPosition.left) / canvas.width) * 2 - 1,
       - ((event.clientY - canvasPosition.top) / canvas.height) * 2 + 1,
       0.5 );
@@ -399,7 +407,18 @@ function onMouseDown(event) {
         mouseArray.push(leftBottom);
         var rightTopVec = rightTop.clone();
         var leftBottomVec = leftBottom.clone();
+        console.log("rightTopVec1", rightTopVec)
         rightTopVec = rightTopVec.unproject(camera);
+        console.log("rightTopVec2", rightTopVec)
+        var widthHalf = 0.5*renderer.context.canvas.width;
+        var heightHalf = 0.5*renderer.context.canvas.height;
+        var right_top_vec_copy = rightTopVec.clone()
+        var proj = right_top_vec_copy.project(camera);
+        proj.x = Math.round( proj.x * widthHalf  ) + widthHalf;
+        proj.y = Math.round( -proj.y * heightHalf  ) + heightHalf;
+        console.log(proj.x, proj.y)
+        // var projectedPosition = rightTopVec.applyMatrix4(rightTopVec.matrixWorld).project(camera)
+        // console.log("projectedPosition2", projectedPosition)
         leftBottomVec = leftBottomVec.unproject(camera);
         var rightTopPointGeometry = new THREE.Geometry();
         rightTopPointGeometry.vertices.push(rightTopVec);
@@ -443,15 +462,15 @@ function skybox_init(scan, image) {
   camera = new THREE.PerspectiveCamera(VFOV, ASPECT, 0.01, 1000);
   camera_pose = new THREE.Group();
   camera_pose.add(camera);
-  
+
   // create the Matterport world frame
   world_frame = new THREE.Group();
-  
+
   // create the cubemap frame
   cubemap_frame = new THREE.Group();
   cubemap_frame.rotation.x = -Math.PI; // Adjust cubemap for z up
   cubemap_frame.add(world_frame);
-  
+
   // create the Scene
   scene = new THREE.Scene();
   world_frame.add(camera_pose);
@@ -522,6 +541,71 @@ function cube_urls(scan, image_id) {
       urlPrefix + "_skybox1_sami.jpg", urlPrefix + "_skybox3_sami.jpg" ];
 }
 
+function draw_bboxes(data)
+{
+  console.log(data)
+  var cubemap_frame_matrix = new THREE.Matrix4();
+  cubemap_frame_matrix.fromArray(data["cubemap_frame_matrix"])
+  cubemap_frame_matrix.decompose(cubemap_frame.position, cubemap_frame.quaternion, cubemap_frame.scale);
+  cubemap_frame.updateMatrix();
+  var world_frame_matrix = new THREE.Matrix4();
+  world_frame_matrix.fromArray(data["world_frame_matrix"])
+  world_frame_matrix.decompose(world_frame.position, world_frame.quaternion, world_frame.scale);
+  world_frame.updateMatrix();
+  var camera_pose_matrix = new THREE.Matrix4();
+  camera_pose_matrix.fromArray(data["camera_pose_matrix"])
+  camera_pose_matrix.decompose(camera_pose.position, camera_pose.quaternion, camera_pose.scale);
+  camera_pose.updateMatrix();
+  var camera_matrix = new THREE.Matrix4();
+  camera_matrix.fromArray(data["camera_matrix"])
+  camera_matrix.decompose(camera.position, camera.quaternion, camera.scale);
+  camera.updateMatrix();
+  render();
+  var left_top = data.mouse_left_top;
+  var right_bottom = data.mouse_right_bottom;
+  var right_top = data.mouse_right_top;
+  var left_bottom = data.mouse_left_bottom;
+  var left_top_vec = new THREE.Vector3();
+  left_top_vec.x = left_top.x;
+  left_top_vec.y = left_top.y;
+  left_top_vec.z = left_top.z;
+  var right_bottom_vec = new THREE.Vector3();
+  right_bottom_vec.x = right_bottom.x;
+  right_bottom_vec.y = right_bottom.y;
+  right_bottom_vec.z = right_bottom.z;
+  var right_top_vec = new THREE.Vector3();
+  right_top_vec.x = right_top.x;
+  right_top_vec.y = right_top.y;
+  right_top_vec.z = right_top.z;
+  var left_bottom_vec = new THREE.Vector3();
+  left_bottom_vec.x = left_bottom.x;
+  left_bottom_vec.y = left_bottom.y;
+  left_bottom_vec.z = left_bottom.z;
+  left_top_vec = left_top_vec.unproject(camera);
+  right_bottom_vec = right_bottom_vec.unproject(camera);
+  right_top_vec = right_top_vec.unproject(camera);
+  // var widthHalf = 0.5*renderer.context.canvas.width;
+  // var heightHalf = 0.5*renderer.context.canvas.height;
+  // var right_top_vec_copy = right_top_vec.clone()
+  // var proj = right_top_vec_copy.project(camera);
+  // proj.x = Math.round( proj.x * widthHalf  ) + widthHalf;
+  // proj.y = Math.round( -proj.y * heightHalf  ) + heightHalf;
+  // console.log(proj.x, proj.y)
+  left_bottom_vec = left_bottom_vec.unproject(camera);
+
+  var lineGeometry = new THREE.Geometry();
+  var lineMaterial = new THREE.LineBasicMaterial({color: 0xff0000});
+
+  lineGeometry.vertices.push(left_top_vec, right_top_vec);
+  lineGeometry.vertices.push(right_bottom_vec, left_bottom_vec);
+  lineGeometry.vertices.push(left_top_vec);
+
+  var line = new THREE.Line(lineGeometry, lineMaterial);
+  line.name = curr_image_id + '_line';
+  scene.add(line);
+  render();
+}
+
 function get_boundingbox(image_id) {
   var last_line = scene.getObjectByName(curr_image_id + '_line');
   scene.remove(last_line);
@@ -553,45 +637,15 @@ function get_boundingbox(image_id) {
     contentType: "application/json",
     dataType:"json",
     data:JSON.stringify(roomInfo),
+
     success:function (data) {
       console.log(data);
       if(data != null) {
-        var left_top = data.mouse_left_top;
-        var right_bottom = data.mouse_right_bottom;
-        var right_top = data.mouse_right_top;
-        var left_bottom = data.mouse_left_bottom;
-        var left_top_vec = new THREE.Vector3();
-        left_top_vec.x = left_top.x;
-        left_top_vec.y = left_top.y;
-        left_top_vec.z = left_top.z;
-        var right_bottom_vec = new THREE.Vector3();
-        right_bottom_vec.x = right_bottom.x;
-        right_bottom_vec.y = right_bottom.y;
-        right_bottom_vec.z = right_bottom.z;
-        var right_top_vec = new THREE.Vector3();
-        right_top_vec.x = right_top.x;
-        right_top_vec.y = right_top.y;
-        right_top_vec.z = right_top.z;
-        var left_bottom_vec = new THREE.Vector3();
-        left_bottom_vec.x = left_bottom.x;
-        left_bottom_vec.y = left_bottom.y;
-        left_bottom_vec.z = left_bottom.z;
-        left_top_vec = left_top_vec.unproject(camera);
-        right_bottom_vec = right_bottom_vec.unproject(camera);
-        right_top_vec = right_top_vec.unproject(camera);
-        left_bottom_vec = left_bottom_vec.unproject(camera);
-
-        var lineGeometry = new THREE.Geometry();
-        var lineMaterial = new THREE.LineBasicMaterial({color: 0xff0000});
-
-        lineGeometry.vertices.push(left_top_vec, right_top_vec);
-        lineGeometry.vertices.push(right_bottom_vec, left_bottom_vec);
-        lineGeometry.vertices.push(left_top_vec);
-
-        var line = new THREE.Line(lineGeometry, lineMaterial);
-        line.name = curr_image_id + '_line';
-        scene.add(line);
-        render();
+        console.log("data", data)
+        for (var i in data)
+        {
+          draw_bboxes(data[i])
+        }
       }
     }
   })
@@ -609,7 +663,7 @@ function move_to(image_id, isInitial=false) {
     // }
   }
   // var lines = line_frame.children;
-  // for (var i = 0; i < lines.length; ++i) 
+  // for (var i = 0; i < lines.length; ++i)
   //   lines[i].visible = lines[i].included;
   // Correct world frame for individual skybox camera rotation
   var inv = new THREE.Matrix4();
@@ -660,6 +714,13 @@ function get_camera_and_pose_matrix() {
   camera_pose.updateMatrix();
   return [camera.matrix.clone(), camera_pose.matrix.clone()];
 }
+function get_all_four_matrix() {
+  camera.updateMatrix();
+  camera_pose.updateMatrix();
+  world_frame.updateMatrix();
+  cubemap_frame.updateMatrix();
+  return [camera.matrix.clone(), camera_pose.matrix.clone(), world_frame.matrix.clone(), cubemap_frame.matrix.clone()];
+}
 
 function get_pose_string(){
   var m = get_camera_pose();
@@ -676,7 +737,7 @@ function get_pose_string(){
 
   // calculate elevation
   elevation = -Math.atan2(cam_look.z, Math.sqrt(Math.pow(cam_look.x,2) + Math.pow(cam_look.y,2)))
-  
+
   return scan+"_"+curr_image_id+"_"+heading+"_"+elevation;
 }
 
@@ -743,7 +804,7 @@ function take_action(image_id) {
     .onComplete(function(){
       cancelAnimationFrame(id);
       texture_promise.then(function(texture) {
-        scene.background = texture; 
+        scene.background = texture;
         camera.fov = VFOV;
         camera.updateProjectionMatrix();
         move_to(image_id);

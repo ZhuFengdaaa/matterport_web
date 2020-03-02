@@ -67,13 +67,15 @@ function readBbox(scan, image_id, heading, elevation) {
 	var data = fs.readFileSync('../app/bbox/' + scan + '_boundingbox.json');
 	var bboxes = data.toString();
 	bboxes = JSON.parse(bboxes);
+	ret_bboxes = [];
 	for (var i in bboxes) {
 		var bbox = bboxes[i];
-		if (bbox['scan'] == scan && bbox['image_id'] == image_id && Math.abs(bbox['heading'] - heading) < 0.01 && Math.abs(bbox['elevation'] - elevation) < 0.0001){
-			return bbox;
+        // if (bbox['scan'] == scan && bbox['image_id'] == image_id && Math.abs(bbox['heading'] - heading) < 0.01 && Math.abs(bbox['elevation'] - elevation) < 0.0001){
+        if (bbox['scan'] == scan && bbox['image_id'] == image_id){
+			ret_bboxes.push(bbox);
 		}
 	}
-	return null;
+	return ret_bboxes;
 }
 
 function readBboxByImage(scan, image_id) {
