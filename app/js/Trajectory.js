@@ -1,10 +1,11 @@
 
-const server_url = ' http://192.168.28.28:7878/';
+const server_url = ' http://localhost:7878/';
 
 var step = 0;
 // var playing = false;
 // var downloading = false;
 var scan;
+var scan_arr;
 var curr_image_id;
 var capturer;
 var frameRate = 60.0;
@@ -44,6 +45,25 @@ $width.value=SIZE_X;
 $height.value=SIZE_Y;
 $vfov.value=VFOV;
 
+var matt = new Matterport3D("");
+$(document).ready(function() {
+  var user_name = prompt('Please input your user name:');
+    while (user_name == undefined || user_name == ""){
+      user_name = prompt('Please input your user name:');
+    }
+    userName = user_name;
+    $.ajax({
+          type: "get",
+          url: server_url + 'userBbox/' + user_name,
+          dataType: "json",
+          success:function (data) {
+            console.log(data)
+            scan_arr = data['scans'];
+            draw();
+          }
+     });
+})
+
 // listen for keyup events on width & height input-text elements
 // Get the current values from input-text & set the width/height vars
 // call draw to redraw the rect with the current width/height values
@@ -64,7 +84,7 @@ function reset() {
 function left() {
   reset();
   ix = ix - 1;
-  if (ix < 0) { ix = gt.length-1;}
+  if (ix < 0) { ix = scan_arr.length-1;}
   $ix.value=ix;
   draw();
 }
@@ -72,7 +92,7 @@ function left() {
 function right() {
   reset();
   ix = ix + 1;
-  if (ix >= gt.length) { ix = 0;}
+  if (ix >= scan_arr.length) { ix = 0;}
   $ix.value=ix;
   draw();
 }
@@ -133,7 +153,8 @@ function draw(){
   //   console.error('instruction id ' + id + ' not in something');
   // }
 
-  id = gt[ix]['scan'];
+  // id = gt[ix]['scan'];
+  id = scan_arr[ix];
   scan = id;
   $scan_id.value = id;
   var img_path = "../data/v1/scans/" + scan + "/matterport_skybox_images/";
@@ -271,23 +292,23 @@ function saveDraw(){
   render()
 }
 
-function initialize(){
-  d3.queue()
-  .defer(d3.json, "/R2Rdata/R2R_val_seen.json")
-  .defer(d3.json, "/R2Rdata/R2R_val_unseen.json")
-  .defer(d3.json, "/R2Rdata/R2R_test.json")
-  .await(function(error, d1, d2, d3) {
-    if (error) {
-      console.error(error);
-    }
-    else {
-      gt = d1.concat(d2).concat(d3);
-      draw();
-    }
-  });
-}
-var matt = new Matterport3D("");
-initialize();
+// function initialize(){
+//   d3.queue()
+//   .defer(d3.json, "/R2Rdata/R2R_val_seen.json")
+//   .defer(d3.json, "/R2Rdata/R2R_val_unseen.json")
+//   .defer(d3.json, "/R2Rdata/R2R_test.json")
+//   .await(function(error, d1, d2, d3) {
+//     if (error) {
+//       console.error(error);
+//     }
+//     else {
+//       gt = d1.concat(d2).concat(d3);
+//       draw();
+//     }
+//   });
+// }
+// var matt = new Matterport3D("");
+// initialize();
 
 /* 获取射线与平面相交的交点 */
 function getIntersects(event) {
@@ -648,27 +669,10 @@ function get_boundingbox(image_id) {
       console.log(data);
       if(data != null) {
         console.log("data", data)
-        cubemap_frame.updateMatrix();
-        var cubemap_frame_matrix = cubemap_frame.matrix.clone();
-        world_frame.updateMatrix();
-        var world_frame_matrix = world_frame.matrix.clone();
-        camera_pose.updateMatrix();
-        var camera_pose_matrix = camera_pose.matrix.clone();
-        camera.updateMatrix();
-        var camera_matrix = camera.matrix.clone();
         for (var i in data)
         {
           draw_bboxes(data[i])
         }
-        cubemap_frame_matrix.decompose(cubemap_frame.position, cubemap_frame.quaternion, cubemap_frame.scale);
-        cubemap_frame.updateMatrix();
-        world_frame_matrix.decompose(world_frame.position, world_frame.quaternion, world_frame.scale);
-        world_frame.updateMatrix();
-        camera_pose_matrix.decompose(camera_pose.position, camera_pose.quaternion, camera_pose.scale);
-        camera_pose.updateMatrix();
-        camera_matrix.decompose(camera.position, camera.quaternion, camera.scale);
-        camera.updateMatrix();
-        render()
       }
     }
   })

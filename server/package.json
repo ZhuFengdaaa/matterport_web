@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "imageinfo": "^1.0.4"
+    "imageinfo": "^1.0.4",
+    "n-readlines": "^1.0.0"
   }
 }

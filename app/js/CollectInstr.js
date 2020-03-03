@@ -26,9 +26,9 @@ var ASPECT = SIZE_X/SIZE_Y;
 var userName;
 
 $(document).ready(function() {
-	var user_name = prompt('Please input the your user name:');
+	var user_name = prompt('Please input your user name:');
     while (user_name == undefined || user_name == ""){
-      user_name = prompt('Please input the your user name:');
+      user_name = prompt('Please input your user name:');
     }
     userName = user_name;
     $.ajax({

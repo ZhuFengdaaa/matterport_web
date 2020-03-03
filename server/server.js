@@ -2,6 +2,7 @@ var express = require('express');
 var fs = require('fs');
 var image = require("imageinfo");
 var bodyParser = require('body-parser');
+var lineByLine = require('n-readlines');
 
 var app = express();
 
@@ -113,6 +114,59 @@ function mkdirUser(userName) {
 	return true;
 }
 
+function readFileToArr(fReadName) {
+
+    var arr = [];
+    liner = new lineByLine(fReadName);
+    while (line = liner.next()) {
+    	arr.push(line.toString('ascii'));
+    }
+    console.log(arr);
+    return arr;
+}
+
+function getUserBbox(userName) {
+	user_path = '../app/bbox/user.txt';
+	scans_path = '../app/bbox/scans.txt';
+	var users_data = fs.readFileSync(user_path);
+	var users = users_data.toString();
+	users = JSON.parse(users);
+	var users_len = users.length;
+	var user_anno;
+
+	for (var i in users) {
+		var u = users[i];
+		if(u['user_name'] == userName) {
+			return u;
+		}
+	}
+	
+	// 22人标注，前21人没人标注4个，最后一人标注3个
+	arr = readFileToArr(scans_path);
+	console.log(arr.length);
+	if (users_len < 22) {
+		user_anno = {
+			"id": users_len,
+			"user_name": userName,
+			"scans": [
+				arr[users_len], arr[users_len+1], arr[users_len+2], arr[users_len+3]
+			]
+		}
+	} else {
+		user_anno = {
+			"id": users_len,
+			"user_name": userName,
+			"scans": [
+				arr[users_len], arr[users_len+1], arr[users_len+2]
+			]
+		}
+	}
+	users.push(user_anno);
+	var str = JSON.stringify(users);
+    fs.writeFileSync(user_path, str);
+	return user_anno;
+}
+
 app.get('/firstStart/:scanId', function(req, res) {
 	var files = getImageFiles('../app/data/v1/scans/' + req.params.scanId + '/matterport_skybox_images/');
 	if (files.length > 0) {
@@ -154,9 +208,15 @@ app.post('/saveInstruction/:userName', function(req, res) {
 	res.json({'status': status});
 })
 
+// used for collecting instructions
 app.get('/user/:userName', function(req, res) {
 	var status = mkdirUser(req.params.userName);
 	res.json({'status': status});
+})
+
+app.get('/userBbox/:userName', function(req, res) {
+	var user_anno = getUserBbox(req.params.userName);
+	res.json(user_anno);
 })
 
 app.listen(7878, function afterListen() {
