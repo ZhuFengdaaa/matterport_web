@@ -266,11 +266,11 @@ app.get('/user/:userName', function(req, res) {
 	res.json({'status': status});
 })
 
-app.listen(3000, function afterListen() {
-	console.log('express running on http://localhost:3000');
-})
-
 app.get('/userBbox/:userName', function(req, res) {
 	var user_anno = getUserBbox(req.params.userName);
 	res.json(user_anno);
 })
+
+app.listen(7878, function afterListen() {
+    console.log('express running on http://localhost:7878');
+});
