@@ -12,11 +12,50 @@ app.use(bodyParser.urlencoded({            //此项必须在 bodyParser.json 下
 
 //设置允许跨域访问该服务.
 app.all('*', function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  //Access-Control-Allow-Headers ,可根据浏览器的F12查看,把对应的粘贴在这里就行
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.header('Access-Control-Allow-Methods', '*');
-  res.header('Content-Type', 'application/json;charset=utf-8');
+	splits = req.originalUrl.split(".")
+	console.log(splits)
+	if (splits.length > 1)
+	{
+		
+		tail = splits[splits.length-1]
+		console.log(tail)
+		if (tail == "html")
+		{
+			res.type('.html');
+		}
+		else if(tail == "js")
+		{
+			console.log("res.type('.js');")
+			res.type('.js');
+		}
+		else if(tail == "css")
+		{
+			res.set('Content-Type', 'text/css')
+		}
+		else if(tail == "json")
+		{
+			res.header('Access-Control-Allow-Origin', '*');
+			//Access-Control-Allow-Headers ,可根据浏览器的F12查看,把对应的粘贴在这里就行
+			res.header('Access-Control-Allow-Headers', 'Content-Type');
+			res.header('Access-Control-Allow-Methods', '*');
+			res.header('Content-Type', 'application/json;charset=utf-8');
+		}
+	}
+	// console.log(req.is('html'))
+	// if(req.is('html'))
+	// {
+	// 	// res.set('Content-Type', 'text/html')
+	// 	res.header('Content-Type', 'text/html')
+	// }
+   else if (splits.length == 1)
+   {
+	res.header('Access-Control-Allow-Origin', '*');
+	//Access-Control-Allow-Headers ,可根据浏览器的F12查看,把对应的粘贴在这里就行
+	res.header('Access-Control-Allow-Headers', 'Content-Type');
+	res.header('Access-Control-Allow-Methods', '*');
+	res.header('Content-Type', 'application/json;charset=utf-8');
+   }
+  
   next();
 });
 
@@ -154,11 +193,24 @@ app.post('/saveInstruction/:userName', function(req, res) {
 	res.json({'status': status});
 })
 
+app.set('views', __dirname + '/views');
+app.engine('html', require('ejs').renderFile);
+
+app.get('/index.html', function(req, res){
+	res.render('index.html')
+})
+
+app.get('/trajectory.html', function(req, res){
+	res.render('trajectory.html')
+})
+
+app.use(express.static('public'))
+
 app.get('/user/:userName', function(req, res) {
 	var status = mkdirUser(req.params.userName);
 	res.json({'status': status});
 })
 
-app.listen(7878, function afterListen() {
-    console.log('express running on http://localhost:7878');
+app.listen(3000, function afterListen() {
+    console.log('express running on http://localhost:3000');
 });
