@@ -183,7 +183,8 @@ function getUserBbox(userName) {
 	// 22人标注，前21人没人标注4个，最后一人标注3个
 	arr = readFileToArr(scans_path);
 	console.log(arr.length);
-	if (users_len < 22) {
+	var wrightperson = true;
+	if (users_len < 21) {
 		user_anno = {
 			"id": users_len,
 			"user_name": userName,
@@ -191,7 +192,7 @@ function getUserBbox(userName) {
 				arr[users_len], arr[users_len+1], arr[users_len+2], arr[users_len+3]
 			]
 		}
-	} else {
+	} else if (users_len == 21) {
 		user_anno = {
 			"id": users_len,
 			"user_name": userName,
@@ -199,10 +200,16 @@ function getUserBbox(userName) {
 				arr[users_len], arr[users_len+1], arr[users_len+2]
 			]
 		}
+	} else {
+		wrightperson = false;
 	}
-	users.push(user_anno);
-	var str = JSON.stringify(users);
-    fs.writeFileSync(user_path, str);
+	if (wrightperson) {
+		users.push(user_anno);
+		var str = JSON.stringify(users);
+	    fs.writeFileSync(user_path, str);
+	} else {
+		user_anno = null;
+	}
 	return user_anno;
 }
 
