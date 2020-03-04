@@ -5,4 +5,7 @@ app/connectivity
 app/data
 .idea
 .DS_Store
-server/node_moduls
+server/node_modules
+server/public/R2Rdata
+server/public/connectivity
+server/public/data
