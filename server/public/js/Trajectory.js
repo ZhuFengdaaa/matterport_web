@@ -17,6 +17,8 @@ var camera, camera_pose, scene, controls, renderer, connections, id_to_ix, world
 var fp_scene, fp_camera, fp_renderer, dollhouse, mesh_names;
 var mouse = new THREE.Vector2();
 var id, gt;
+var userName;
+var scan_examples = ['vyrNrziPKCB', 'aayBHfsNo7d', 'B6ByNegPMKs'];
 
 var ix = 0;
 var SIZE_X = 1140;
@@ -47,6 +49,7 @@ $vfov.value=VFOV;
 
 var matt = new Matterport3D("");
 $(document).ready(function() {
+  $("#back").attr("style","display:none;");
   var user_name = prompt('Please input your user name:');
     while (user_name == undefined || user_name == ""){
       user_name = prompt('Please input your user name:');
@@ -67,6 +70,40 @@ $(document).ready(function() {
           }
      });
 })
+
+function examples() {
+  scan_arr = scan_examples;
+  ix = 0;
+  $ix.value=ix;
+  draw();
+  $("#drawBbox").attr("style","display:none;");
+  $("#resetBbox").attr("style","display:none;");
+  $("#saveBbox").attr("style","display:none;");
+  $("#back").attr("style","display:black;");
+}
+
+function backToDraw() {
+  $.ajax({
+        type: "get",
+        url: server_url + 'userBbox/' + userName,
+        dataType: "json",
+        success:function (data) {
+          console.log(data);
+          if (data != null) {
+            scan_arr = data['scans'];
+            ix = 0;
+            $ix.value=ix;
+            draw();
+            $("#drawBbox").attr("style","display:black;");
+            $("#resetBbox").attr("style","display:black;");
+            $("#saveBbox").attr("style","display:black;");
+            $("#back").attr("style","display:none;");
+          } else {
+            alert("标注人员已满，多谢支持");
+          }
+        }
+   });
+}
 
 // listen for keyup events on width & height input-text elements
 // Get the current values from input-text & set the width/height vars

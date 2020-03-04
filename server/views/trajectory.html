@@ -27,12 +27,13 @@
                 Choose file <input id="trajFile" name="trajFile" type="file" style="display: none;">
               </label> -->
               <!-- <span id="fileName"> val_unseen_shortest_agent.json </span> -->
-              <div class="form-group" style="margin-left: 20px;">
+              <!-- <div class="form-group" style="margin-left: 20px;">
                 <input class="form-check-input" type="checkbox" checked="checked" value="" id="show-instructions">
                 <label class="form-check-label" for="show-instructions">Show adjacent viewpoints</label>
-              </div>
+              </div> -->
             </form>
             <p>
+              <button type="button" class="btn btn-default" onclick="examples()">Examples</button>
               <strong>Trajectory:</strong>
               <button type="button" class="btn btn-default" onclick="left()">
                 <span class="glyphicon glyphicon-triangle-left"></span>
@@ -42,9 +43,10 @@
                 <span class="glyphicon glyphicon-triangle-right"></span>
               </button>
               <span>Scan ID:</span><input disabled=True type="text" id="scan_id">
-              <button type="button" class="btn btn-default" onclick="startDraw()">start draw</button>
-              <button type="button" class="btn btn-default" onclick="resetDraw()">reset</button>
-              <button type="button" class="btn btn-default" onclick="saveDraw()">save</button>
+              <button type="button" id="drawBbox" class="btn btn-default" onclick="startDraw()">start draw</button>
+              <button type="button" id="resetBbox" class="btn btn-default" onclick="resetDraw()">reset</button>
+              <button type="button" id="saveBbox" class="btn btn-default" onclick="saveDraw()">save</button>
+              <button type="button" id="back" class="btn btn-default" onclick="backToDraw()">back</button>
             </p>
             <!-- <p> -->
               <!-- <strong>Camera parameters:</strong> -->
