@@ -271,6 +271,6 @@ app.get('/userBbox/:userName', function(req, res) {
 	res.json(user_anno);
 })
 
-app.listen(7878, function afterListen() {
-    console.log('express running on http://localhost:7878');
+app.listen(3000, function afterListen() {
+    console.log('express running on http://localhost:3000');
 });
