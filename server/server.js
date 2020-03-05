@@ -211,7 +211,7 @@ function getUserBbox(userName) {
 			"id": users_len,
 			"user_name": userName,
 			"scans": [
-				arr[users_len*4], arr[users_len*4+1], arr[users_len*4+2], arr[users_len*4+3]
+				arr[0], arr[1], arr[2], arr[3]
 			]
 		}
 	} else if (users_len == 21) {
@@ -219,7 +219,7 @@ function getUserBbox(userName) {
 			"id": users_len,
 			"user_name": userName,
 			"scans": [
-				arr[users_len*4], arr[users_len*4+1], arr[users_len*4+2]
+				arr[0], arr[1], arr[2]
 			]
 		}
 	} else {
