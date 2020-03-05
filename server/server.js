@@ -17,7 +17,7 @@ app.all('*', function (req, res, next) {
 	console.log(splits)
 	if (splits.length > 1)
 	{
-		
+
 		tail = splits[splits.length-1]
 		console.log(tail)
 		if (tail == "html")
@@ -56,7 +56,7 @@ app.all('*', function (req, res, next) {
 	res.header('Access-Control-Allow-Methods', '*');
 	res.header('Content-Type', 'application/json;charset=utf-8');
    }
-  
+
   next();
 });
 
@@ -179,7 +179,7 @@ function getUserBbox(userName) {
 			return u;
 		}
 	}
-	
+
 	// 22人标注，前21人没人标注4个，最后一人标注3个
 	arr = readFileToArr(scans_path);
 	console.log(arr.length);
@@ -188,7 +188,7 @@ function getUserBbox(userName) {
 			"id": users_len,
 			"user_name": userName,
 			"scans": [
-				arr[users_len], arr[users_len+1], arr[users_len+2], arr[users_len+3]
+				arr[users_len*4], arr[users_len*4+1], arr[users_len*4+2], arr[users_len*4+3]
 			]
 		}
 	} else {
@@ -196,7 +196,7 @@ function getUserBbox(userName) {
 			"id": users_len,
 			"user_name": userName,
 			"scans": [
-				arr[users_len], arr[users_len+1], arr[users_len+2]
+				arr[users_len*4], arr[users_len*4+1], arr[users_len*4+2]
 			]
 		}
 	}
