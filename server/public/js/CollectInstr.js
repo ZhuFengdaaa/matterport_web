@@ -1,4 +1,4 @@
-const server_url = 'http://label-x3.dm-ai.cn:3000/';
+const server_url = 'http://label-x3.dm-ai.cn/';
 
 //var ix = ${ix}   // UNCOMMENT THIS LINE WHEN INTEGRATING WITH AMT
 // var ix = location.search.split('ix=')[1];   // UNCOMMENT THIS LINE TO RUN UI LOCALLY WITH GULP
@@ -53,7 +53,7 @@ function initialize(){
     else {
       gt = d1.concat(d2).concat(d3);
       ix_max = gt.length;
-      
+
       id = gt[ix]['scan'];
       scan = id;
       matt.loadJson('bbox/' + scan + '_boundingbox.json').then(function(data){
@@ -102,7 +102,7 @@ function get_random_property() {
             num2--;
         }
     }
-    
+
     var properties = new Array('color', 'shape', 'material', 'state', 'size', 'pose');
     return [properties[num1], properties[num2]];
 };
@@ -114,7 +114,7 @@ function play_animation() {
     var image_id = path['path'][0];
     matt.loadCubeTexture(cube_urls(scan, image_id)).then(function(texture){
       camera.rotation.x = 0;
-      camera.rotation.y = -start_heading; 
+      camera.rotation.y = -start_heading;
       camera.rotation.z = 0;
       scene.background = texture;
       render();
@@ -159,15 +159,15 @@ function skybox_init() {
 
   camera_pose = new THREE.Group();
   camera_pose.add(camera);
-  
+
   // create the Matterport world frame
   world_frame = new THREE.Group();
-  
+
   // create the cubemap frame
   cubemap_frame = new THREE.Group();
   cubemap_frame.rotation.x = -Math.PI; // Adjust cubemap for z up
   cubemap_frame.add(world_frame);
-  
+
   // create the Scene
   scene = new THREE.Scene();
   world_frame.add(camera_pose);
@@ -229,7 +229,7 @@ function load_connections(scan, image_id) {
       id_to_ix[im] = i;
     }
     world_frame.add(cylinder_frame);
-    
+
     matt.loadCubeTexture(cube_urls(scan, image_id)).then(function(texture){
       scene.background = texture;
       move_to(image_id, true);
@@ -347,7 +347,7 @@ function take_action(image_id) {
   .onComplete(function(){
     cancelAnimationFrame(id);
     texture_promise.then(function(texture) {
-      scene.background = texture; 
+      scene.background = texture;
       camera.fov = VFOV;
       camera.updateProjectionMatrix();
       move_to(image_id);

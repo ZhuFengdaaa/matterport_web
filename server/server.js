@@ -164,6 +164,18 @@ function readFileToArr(fReadName) {
     return arr;
 }
 
+// 删除数组中的元素
+function del(arr,num) {
+	var l=arr.length;
+    for (var i = 0; i < l; i++) {
+	  	if (arr[0]!==num) { 
+	  		arr.push(arr[0]);
+	  	}
+	  	arr.shift(arr[0]);
+    }
+    return arr;
+}
+
 function getUserBbox(userName) {
 	user_path = '../app/bbox/user.txt';
 	scans_path = '../app/bbox/scans.txt';
@@ -172,37 +184,52 @@ function getUserBbox(userName) {
 	users = JSON.parse(users);
 	var users_len = users.length;
 	var user_anno;
+	arr = readFileToArr(scans_path);
+	console.log(arr.length);
 
 	for (var i in users) {
 		var u = users[i];
 		if(u['user_name'] == userName) {
 			return u;
+		} else if (i <= 21) {
+			arr = del(arr, u['scans'][0]);
+			arr = del(arr, u['scans'][1]);
+			arr = del(arr, u['scans'][2]);
+			arr = del(arr, u['scans'][3]);
+		} else if (i == 22) {
+			arr = del(arr, u['scans'][0]);
+			arr = del(arr, u['scans'][1]);
+			arr = del(arr, u['scans'][2]);
 		}
 	}
-
 	// 22人标注，前21人没人标注4个，最后一人标注3个
-	arr = readFileToArr(scans_path);
-	console.log(arr.length);
-	if (users_len < 22) {
+	var wrightperson = true;
+	if (users_len < 21) {
 		user_anno = {
 			"id": users_len,
 			"user_name": userName,
 			"scans": [
-				arr[users_len*4], arr[users_len*4+1], arr[users_len*4+2], arr[users_len*4+3]
+				arr[0], arr[1], arr[2], arr[3]
+			]
+		}
+	} else if (users_len == 21) {
+		user_anno = {
+			"id": users_len,
+			"user_name": userName,
+			"scans": [
+				arr[0], arr[1], arr[2]
 			]
 		}
 	} else {
-		user_anno = {
-			"id": users_len,
-			"user_name": userName,
-			"scans": [
-				arr[users_len*4], arr[users_len*4+1], arr[users_len*4+2]
-			]
-		}
+		wrightperson = false;
 	}
-	users.push(user_anno);
-	var str = JSON.stringify(users);
-    fs.writeFileSync(user_path, str);
+	if (wrightperson) {
+		users.push(user_anno);
+		var str = JSON.stringify(users);
+	    fs.writeFileSync(user_path, str);
+	} else {
+		user_anno = null;
+	}
 	return user_anno;
 }
 
@@ -256,6 +283,10 @@ app.get('/index.html', function(req, res){
 
 app.get('/trajectory.html', function(req, res){
 	res.render('trajectory.html')
+})
+
+app.get('/instructions.html', function(req, res){
+	res.render('instructions.html')
 })
 
 app.use(express.static('public'))

@@ -1,5 +1,5 @@
 
-const server_url = ' http://label-x3.dm-ai.cn:3000/';
+const server_url = 'http://label-x3.dm-ai.cn/';
 
 var step = 0;
 // var playing = false;
@@ -17,6 +17,8 @@ var camera, camera_pose, scene, controls, renderer, connections, id_to_ix, world
 var fp_scene, fp_camera, fp_renderer, dollhouse, mesh_names;
 var mouse = new THREE.Vector2();
 var id, gt;
+var userName;
+var scan_examples = ['vyrNrziPKCB', 'aayBHfsNo7d', 'B6ByNegPMKs'];
 
 var ix = 0;
 var SIZE_X = 1140;
@@ -47,6 +49,7 @@ $vfov.value=VFOV;
 
 var matt = new Matterport3D("");
 $(document).ready(function() {
+  $("#back").attr("style","display:none;");
   var user_name = prompt('Please input your user name:');
     while (user_name == undefined || user_name == ""){
       user_name = prompt('Please input your user name:');
@@ -57,12 +60,50 @@ $(document).ready(function() {
           url: server_url + 'userBbox/' + user_name,
           dataType: "json",
           success:function (data) {
-            console.log(data)
-            scan_arr = data['scans'];
-            draw();
+            console.log(data);
+            if (data != null) {
+              scan_arr = data['scans'];
+              draw();
+            } else {
+              alert("标注人员已满，多谢支持");
+            }
           }
      });
 })
+
+function examples() {
+  scan_arr = scan_examples;
+  ix = 0;
+  $ix.value=ix;
+  draw();
+  $("#drawBbox").attr("style","display:none;");
+  $("#resetBbox").attr("style","display:none;");
+  $("#saveBbox").attr("style","display:none;");
+  $("#back").attr("style","display:black;");
+}
+
+function backToDraw() {
+  $.ajax({
+        type: "get",
+        url: server_url + 'userBbox/' + userName,
+        dataType: "json",
+        success:function (data) {
+          console.log(data);
+          if (data != null) {
+            scan_arr = data['scans'];
+            ix = 0;
+            $ix.value=ix;
+            draw();
+            $("#drawBbox").attr("style","display:black;");
+            $("#resetBbox").attr("style","display:black;");
+            $("#saveBbox").attr("style","display:black;");
+            $("#back").attr("style","display:none;");
+          } else {
+            alert("标注人员已满，多谢支持");
+          }
+        }
+   });
+}
 
 // listen for keyup events on width & height input-text elements
 // Get the current values from input-text & set the width/height vars
@@ -118,9 +159,9 @@ $vfov.addEventListener("keyup", function(){
     draw();
 }, false);
 
-document.getElementById('show-instructions').addEventListener("change", function(){
-  move_to(curr_image_id);
-});
+// document.getElementById('show-instructions').addEventListener("change", function(){
+//   move_to(curr_image_id);
+// });
 
 // document.getElementById('trajFile').addEventListener("change", function(evt){
 //   reset();
@@ -211,7 +252,7 @@ function saveDraw(){
   var left_bottom = scene.getObjectByName('left_bottom');
 
   if (mouseArray[0] == undefined || mouseArray[1] == undefined || mouseArray[2] == undefined || mouseArray[3] == undefined) {
-    return; 
+    return;
   }
 
   var obj_name = prompt('Please input the name of the object:');
@@ -236,7 +277,7 @@ function saveDraw(){
   // calculate elevation
   elevation = -Math.atan2(cam_look.z, Math.sqrt(Math.pow(cam_look.x,2) + Math.pow(cam_look.y,2)))
 
-  
+
 
   var camera_matrix, camera_pose_matrix
   var matrix_list = get_all_four_matrix()
@@ -669,26 +710,26 @@ function get_boundingbox(image_id) {
       console.log(data);
       if(data != null) {
         console.log("data", data)
-        cubemap_frame.updateMatrix();	
-        var cubemap_frame_matrix = cubemap_frame.matrix.clone();	
-        world_frame.updateMatrix();	
-        var world_frame_matrix = world_frame.matrix.clone();	
-        camera_pose.updateMatrix();	
-        var camera_pose_matrix = camera_pose.matrix.clone();	
-        camera.updateMatrix();	
+        cubemap_frame.updateMatrix();
+        var cubemap_frame_matrix = cubemap_frame.matrix.clone();
+        world_frame.updateMatrix();
+        var world_frame_matrix = world_frame.matrix.clone();
+        camera_pose.updateMatrix();
+        var camera_pose_matrix = camera_pose.matrix.clone();
+        camera.updateMatrix();
         var camera_matrix = camera.matrix.clone();
         for (var i in data)
         {
           draw_bboxes(data[i])
         }
-        cubemap_frame_matrix.decompose(cubemap_frame.position, cubemap_frame.quaternion, cubemap_frame.scale);	
-        cubemap_frame.updateMatrix();	
-        world_frame_matrix.decompose(world_frame.position, world_frame.quaternion, world_frame.scale);	
-        world_frame.updateMatrix();	
-        camera_pose_matrix.decompose(camera_pose.position, camera_pose.quaternion, camera_pose.scale);	
-        camera_pose.updateMatrix();	
-        camera_matrix.decompose(camera.position, camera.quaternion, camera.scale);	
-        camera.updateMatrix();	
+        cubemap_frame_matrix.decompose(cubemap_frame.position, cubemap_frame.quaternion, cubemap_frame.scale);
+        cubemap_frame.updateMatrix();
+        world_frame_matrix.decompose(world_frame.position, world_frame.quaternion, world_frame.scale);
+        world_frame.updateMatrix();
+        camera_pose_matrix.decompose(camera_pose.position, camera_pose.quaternion, camera_pose.scale);
+        camera_pose.updateMatrix();
+        camera_matrix.decompose(camera.position, camera.quaternion, camera.scale);
+        camera.updateMatrix();
         render()
       }
     }
