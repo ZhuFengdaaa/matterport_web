@@ -57,9 +57,13 @@ $(document).ready(function() {
           url: server_url + 'userBbox/' + user_name,
           dataType: "json",
           success:function (data) {
-            console.log(data)
-            scan_arr = data['scans'];
-            draw();
+            console.log(data);
+            if (data != null) {
+              scan_arr = data['scans'];
+              draw();
+            } else {
+              alert("标注人员已满，多谢支持");
+            }
           }
      });
 })

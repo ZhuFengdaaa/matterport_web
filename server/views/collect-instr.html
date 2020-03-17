@@ -10,6 +10,23 @@
 		<div><figure style="display: inline-block; width: 100%;">
           <canvas id="skybox" style="width:auto; display: block; margin: 0 auto;">
         </figure></div>
+	<div class="page-header">
+	<h1>Collect Instructions</h1>
+	<div class="row">
+	<div class="col-md-12">
+		<p>
+		  <strong>Trajectory:</strong>
+		  <button type="button" class="btn btn-default" onclick="left()">
+		    <span class="glyphicon glyphicon-triangle-left"></span>
+		  </button>
+		  <span>Index:</span><input type="text" id="ix">
+		  <button type="button" class="btn btn-default" onclick="right()">
+		    <span class="glyphicon glyphicon-triangle-right"></span>
+		  </button>
+		  <span>Scan ID:</span><input disabled=True type="text" id="scan_id">
+		</p>
+	</div>
+	</div>
 	</div>
 	<div id="instrs" class="form-group" style="font-size: 18px; margin: 30">
 		<p><strong>Target: <label id="target_name" style="color:#FF0000"></label></strong></p>
@@ -23,7 +40,12 @@
         <textarea class="form-control" id="tag4" name="tag4" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
         <p><strong>5. Rewrite all sentences within three sentences:</strong></p>
         <textarea class="form-control" id="tag5" name="tag5" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
-        <button class="btn btn-default" type="button" onclick="saveInstrs()">Submit</button>
+        <div align="center">
+        <button class="btn btn-default" type="button" onclick="saveInstrs()">Save</button>
+        <button class="btn btn-default" type="button" onclick="next_bbox()">Next</button>
+        <button class="btn btn-default" type="button" onclick="pre_bbox()">Previous</button>
+        </div>
+	</div>
 	</div>
 	<style type="text/css">#collapseTrigger{
 	  color:#fff;

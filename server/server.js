@@ -89,7 +89,7 @@ function getImageFiles(path) {
 }
 
 function writeBbox(params){
-    bbox_path = '../app/bbox/' + params.scan + '_boundingbox.json';
+    var bbox_path = '../app/bbox/' + params.scan + '_boundingbox.json';
     if (!fs.existsSync(bbox_path)) {
     	fs.writeFileSync(bbox_path, '[]')
     }
@@ -101,6 +101,58 @@ function writeBbox(params){
     fs.writeFileSync(bbox_path,str);
     console.log('----------write success-------------');
     return true;
+}
+
+function writeInstr(params) {
+	var scan = params.scan;
+	var instr_path = '../app/instructions/' + scan + '_instructions.json';
+	var image_id = params.image_id;
+    var heading = params.heading;
+    var elevation = params.elevation;
+    var data = fs.readFileSync(instr_path);
+    var instrs = data.toString();
+    instrs = JSON.parse(instrs);
+
+    var exist = false;
+    for (var i in instrs) {
+    	var ins = instrs[i];
+    	if (ins['scan'] == scan && ins['image_id'] == image_id && Math.abs(ins['heading'] - heading) < 1e-10 && Math.abs(ins['elevation'] - elevation) < 1e-10) {
+    		instrs[i] = params;
+		    var str = JSON.stringify(instrs);
+		    fs.writeFileSync(instr_path,str);
+		    console.log('----------write success-------------');
+		    exist = true;
+		    break;
+    	}
+    }
+    if (!exist) {
+    	instrs.push(params);
+	    var str = JSON.stringify(instrs);
+	    fs.writeFileSync(instr_path,str);
+	    console.log('----------write success-------------');
+    }
+}
+
+function getInstr(params) {
+	var scan = params.scan;
+	var instr_path = '../app/instructions/' + scan + '_instructions.json';
+	var image_id = params.image_id;
+    var heading = params.heading;
+    var elevation = params.elevation;
+    var data = fs.readFileSync(instr_path);
+    var instrs = data.toString();
+    instrs = JSON.parse(instrs);
+
+    var exist = false;
+    for (var i in instrs) {
+    	var ins = instrs[i];
+    	if (ins['scan'] == scan && ins['image_id'] == image_id && Math.abs(ins['heading'] - heading) < 1e-10 && Math.abs(ins['elevation'] - elevation) < 1e-10) {
+    		return ins;
+    	}
+    }
+    if (!exist) {
+    	return null;
+    }
 }
 
 function readBbox(scan, image_id, heading, elevation) {
@@ -131,26 +183,59 @@ function readBboxByImage(scan, image_id) {
 	return null;
 }
 
-function writeInstr(params, userName) {
-	instr_path = '../app/' + userName + '/' + params.scan + '_instructions.json';
-	if (!fs.existsSync(instr_path)) {
-    	fs.writeFileSync(instr_path, '[]')
-    }
-    var data = fs.readFileSync(instr_path);
-    var instr = data.toString();
-    instr = JSON.parse(instr);
-    instr.push(params);
-    var str = JSON.stringify(instr);
-    fs.writeFileSync(instr_path,str);
-    console.log('----------write success-------------');
-    return true;
-}
+function getUserInstr(userName) {
+	user_path = '../app/instructions/user.txt';
+	scans_path = '../app/instructions/scans.txt';
+	var users_data = fs.readFileSync(user_path);
+	var users = users_data.toString();
+	users = JSON.parse(users);
+	var users_len = users.length;
+	arr = readFileToArr(scans_path);
+	console.log(arr.length);
 
-function mkdirUser(userName) {
-	dir = '../app/' + userName;
-	if(!fs.existsSync(dir))
-		fs.mkdirSync('../app/' + userName);
-	return true;
+	// 暂定每人一个house
+	for (var i in users) {
+		var u = users[i];
+		if(u['user_name'] == userName) {
+			return u;
+		} else {
+			arr = del(arr, u['scans'][0]);
+		}
+	}
+
+	// 选择已经标注好了的house，bbox数量大于等于100
+	var valid = false;
+	var valid_scan;
+	for (var i in arr) {
+		bbox_path = '../app/bbox/' + arr[i] + '_boundingbox.json';
+		console.log(bbox_path)
+		if (fs.existsSync(bbox_path)) {
+			console.log('bbox file exists')
+			var bbox_data = fs.readFileSync(bbox_path);
+		    var bbox = bbox_data.toString();
+		    bbox = JSON.parse(bbox);
+		    if (bbox.length >= 100) {
+		    	console.log(bbox.length)
+		    	valid = true;
+		    	valid_scan = arr[i];
+		    	break;
+		    }
+		}
+	}
+
+	if (valid) {
+		user_anno = {
+			'id': users_len,
+			'user_name': userName,
+			'scans': [valid_scan]
+		}
+		users.push(user_anno);
+		var str = JSON.stringify(users);
+	    fs.writeFileSync(user_path, str);
+		return user_anno;
+	} else {
+		return null;
+	}
 }
 
 function readFileToArr(fReadName) {
@@ -270,8 +355,14 @@ app.post('/getPointByImage', function(req, res) {
 app.post('/saveInstruction/:userName', function(req, res) {
 	console.log(req.params.userName)
 	console.log(req.body);
-	var status = writeInstr(req.body, req.params.userName);
+	var status = writeInstr(req.body);
 	res.json({'status': status});
+})
+
+app.post('/getSpecificInstr', function(req, res) {
+	console.log(req.body);
+	var instr = getInstr(req.body);
+	res.json(instr);
 })
 
 app.set('views', __dirname + '/views');
@@ -289,17 +380,29 @@ app.get('/instructions.html', function(req, res){
 	res.render('instructions.html')
 })
 
+app.get('/collect-instr.html', function(req, res){
+	res.render('collect-instr.html')
+})
+
 app.use(express.static('public'))
 
 // used for collecting instructions
 app.get('/user/:userName', function(req, res) {
-	var status = mkdirUser(req.params.userName);
-	res.json({'status': status});
+	var user_anno = getUserInstr(req.params.userName);
+	res.json(user_anno);
 })
 
 app.get('/userBbox/:userName', function(req, res) {
 	var user_anno = getUserBbox(req.params.userName);
 	res.json(user_anno);
+})
+
+app.get('/instrBbox/:scanId', function(req, res) {
+	var scan = req.params.scanId;
+	var data = fs.readFileSync('../app/bbox/' + scan + '_boundingbox.json');
+	var bboxes = data.toString();
+	bboxes = JSON.parse(bboxes);
+	res.json(bboxes);
 })
 
 app.listen(3000, function afterListen() {

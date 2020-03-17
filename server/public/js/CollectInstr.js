@@ -1,4 +1,5 @@
-const server_url = 'http://label-x3.dm-ai.cn/';
+// const server_url = 'http://label-x3.dm-ai.cn/';
+const server_url = 'http://localhost:3000/';
 
 //var ix = ${ix}   // UNCOMMENT THIS LINE WHEN INTEGRATING WITH AMT
 // var ix = location.search.split('ix=')[1];   // UNCOMMENT THIS LINE TO RUN UI LOCALLY WITH GULP
@@ -9,6 +10,7 @@ var bbox_max = 0;
 var step = 0;
 var playing = false;
 var scan;
+var scan_arr;
 var curr_image_id;
 var start_heading = 0;
 var start_pose, start_camera_pose;
@@ -16,7 +18,7 @@ var start_pose, start_camera_pose;
 // declare a bunch of variable we will need later
 var camera, camera_pose, scene, controls, renderer, connections, id_to_ix, world_frame, cylinder_frame, cubemap_frame;
 var mouse = new THREE.Vector2();
-var gt, id, scan, bboxes;
+var gt, id, bbox, bboxes;
 
 var SIZE_X = 1140;
 var SIZE_Y = 650;
@@ -24,6 +26,10 @@ var VFOV = 80;
 var ASPECT = SIZE_X/SIZE_Y;
 
 var userName;
+var matt = new Matterport3D("");
+
+var $ix=document.getElementById('ix');
+var $scan_id=document.getElementById('scan_id');
 
 $(document).ready(function() {
 	var user_name = prompt('Please input your user name:');
@@ -34,60 +40,145 @@ $(document).ready(function() {
     $.ajax({
           type: "get",
           url: server_url + 'user/' + user_name,
-          dataType: "json"
+          dataType: "json",
+          success:function (data) {
+            console.log(data);
+            if (data != null) {
+              scan_arr = data['scans'];
+              ix = 0;
+              $ix.value = ix;
+              ix_max = scan_arr.length;
+              scan = scan_arr[ix];
+              draw();
+            } else {
+              alert("暂时没有标注好的数据，多谢支持");
+            }
+          }
      });
 })
 
-var matt = new Matterport3D("");
-initialize();
+// listen for keyup events on width & height input-text elements
+// Get the current values from input-text & set the width/height vars
+// call draw to redraw the rect with the current width/height values
+$ix.addEventListener("keyup", function(){
+  // playing=false;
+  ix=this.value;
+  draw();
+}, false);
 
-function initialize(){
-  d3.queue()
-  .defer(d3.json, "/R2Rdata/R2R_val_seen.json")
-  .defer(d3.json, "/R2Rdata/R2R_val_unseen.json")
-  .defer(d3.json, "/R2Rdata/R2R_test.json")
-  .await(function(error, d1, d2, d3) {
-    if (error) {
-      console.error(error);
-    }
-    else {
-      gt = d1.concat(d2).concat(d3);
-      ix_max = gt.length;
+function reset() {
+  // playing = false;
+  // downloading = false;
+  step = 0;
+  // $play.disabled = false;
+  // $download.disabled = false;
+}
 
-      id = gt[ix]['scan'];
-      scan = id;
-      matt.loadJson('bbox/' + scan + '_boundingbox.json').then(function(data){
-      	bboxes = data;
-      	draw();
-      })
-    }
-  });
+function left() {
+  reset();
+  ix = ix - 1;
+  if (ix < 0) { ix = scan_arr.length-1;}
+  $ix.value=ix;
+  draw();
+}
+
+function right() {
+  reset();
+  ix = ix + 1;
+  if (ix >= scan_arr.length) { ix = 0;}
+  $ix.value=ix;
+  draw();
 }
 
 function draw() {
-	bbox_max = bboxes.length;
-  	var bbox = bboxes[bbox_ix.toString()];
-  	curr_image_id = bbox['image_id'];
-  	skybox_init();
-  	load_connections(scan, curr_image_id);
+  id = scan_arr[ix];
+  scan = id;
+  $scan_id.value = id;
+  $.ajax({
+          type: "get", 
+          url: server_url + 'instrBbox/' + scan, 
+          dataType: "json",
+          success : function (data) { 
+              if(data != null) {
+                bboxes = data
+                bbox_ix = 0;
+                initBbox();
+              } else {
+                console.log('no such file');
+              }
+          }
+     });
+}
+
+function initBbox() {
+  document.body.scrollTop = 0;
+  document.documentElement.scrollTop = 0; //回到顶部
+  bbox_max = bboxes.length;
+  bbox = bboxes[bbox_ix.toString()];
+  curr_image_id = bbox['image_id'];
+  skybox_init();
+  load_connections(scan, curr_image_id);
+
+  // get saved instructions
+  var instr_form = {
+      "scan": bbox['scan'],
+      "image_id": bbox['image_id'],
+      "heading": bbox['heading'],
+      "elevation": bbox['elevation']
+    };
+  $.ajax({
+    type: "POST",
+    url: server_url + 'getSpecificInstr/', 
+    contentType: "application/json",
+    dataType: "json",
+    data:JSON.stringify(instr_form),
+    success:function (data) {
+      console.log(data);
+      if (data != null) {
+        document.getElementById('tag1').value = data['step1'];
+        document.getElementById('tag2').value = data['step2'];
+        document.getElementById('tag3').value = data['step3'];
+        document.getElementById('tag4').value = data['step4'];
+        document.getElementById('tag5').value = data['step5'];
+        document.getElementById('tag1').innerHTML = data['step1'];
+        document.getElementById('tag2').innerHTML = data['step2'];
+        document.getElementById('tag3').innerHTML = data['step3'];
+        document.getElementById('tag4').innerHTML = data['step4'];
+        document.getElementById('tag5').innerHTML = data['step5'];
+      }
+    }
+  })
 }
 
 function next_bbox() {
 	bbox_ix += 1;
 	if (bbox_ix < bbox_max) {
-		draw();
+		initBbox();
 	} else {
-		ix += 1;
-		if (ix < ix_max) {
-			bbox_ix = 0;
-			id = gt[ix]['scan'];
-		    scan = id;
-		    matt.loadJson('bbox/' + scan + '_boundingbox.json').then(function(data){
-		     bboxes = data;
-		     draw();
-		    })
-		}
+    bbox_ix = 0;
+    initBbox();
+    // next house
+		// ix += 1;
+		// if (ix < ix_max) {
+		// 	bbox_ix = 0;
+		// 	id = gt[ix]['scan'];
+		//     scan = id;
+		//     matt.loadJson('../app/bbox/' + scan + '_boundingbox.json').then(function(data){
+		//      bboxes = data;
+		//      draw();
+		//     })
+		// }
 	}
+}
+
+function pre_bbox() {
+  bbox_ix -= 1;
+  if (bbox_ix >= 0) {
+    initBbox();
+  } else {
+    bbox_ix = 0;
+    initBbox();
+  }
 }
 
 function get_random_property() {
@@ -436,7 +527,7 @@ function get_boundingbox(image_id) {
   fist_inst_label.innerText = "1. Describe its " + two_properties[0] + ", " + two_properties[1] + " and a third attribute of the target.";
 }
 
-function saveInstrs(form_k) {
+function saveInstrs() {
 	console.log($('#tag1').val())
 	if($('#tag1').val() == '' || $('#tag2').val() == '' || $('#tag3').val() == '' || $('#tag4').val() == '' || $('#tag5').val() == '') {
 		alert("please complete the form");
@@ -465,6 +556,14 @@ function saveInstrs(form_k) {
 		    }
 		})
 	}
+}
+
+function nextInstrs() {
+  bbox_ix += 
+  bbox_ix = bbox_ix + 1;
+  if (bbox_ix >= bbox_max) { ix = 0;}
+  $ix.value=ix;
+  draw();
 }
 
 function onChange(){
