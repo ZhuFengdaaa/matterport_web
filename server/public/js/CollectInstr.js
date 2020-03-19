@@ -1,5 +1,5 @@
-// const server_url = 'http://label-x3.dm-ai.cn/';
-const server_url = 'http://localhost:3000/';
+const server_url = 'http://label-x3.dm-ai.cn/';
+// const server_url = 'http://localhost:3000/';
 
 //var ix = ${ix}   // UNCOMMENT THIS LINE WHEN INTEGRATING WITH AMT
 // var ix = location.search.split('ix=')[1];   // UNCOMMENT THIS LINE TO RUN UI LOCALLY WITH GULP
@@ -50,6 +50,8 @@ $(document).ready(function() {
               ix_max = scan_arr.length;
               scan = scan_arr[ix];
               draw();
+              skybox_init();
+              load_connections(scan);
             } else {
               alert("暂时没有标注好的数据，多谢支持");
             }
@@ -95,10 +97,10 @@ function draw() {
   scan = id;
   $scan_id.value = id;
   $.ajax({
-          type: "get", 
-          url: server_url + 'instrBbox/' + scan, 
+          type: "get",
+          url: server_url + 'instrBbox/' + scan,
           dataType: "json",
-          success : function (data) { 
+          success : function (data) {
               if(data != null) {
                 bboxes = data
                 bbox_ix = 0;
@@ -116,38 +118,13 @@ function initBbox() {
   bbox_max = bboxes.length;
   bbox = bboxes[bbox_ix.toString()];
   curr_image_id = bbox['image_id'];
-  skybox_init();
-  load_connections(scan, curr_image_id);
-
-  // get saved instructions
-  var instr_form = {
-      "scan": bbox['scan'],
-      "image_id": bbox['image_id'],
-      "heading": bbox['heading'],
-      "elevation": bbox['elevation']
-    };
-  $.ajax({
-    type: "POST",
-    url: server_url + 'getSpecificInstr/', 
-    contentType: "application/json",
-    dataType: "json",
-    data:JSON.stringify(instr_form),
-    success:function (data) {
-      console.log(data);
-      if (data != null) {
-        document.getElementById('tag1').value = data['step1'];
-        document.getElementById('tag2').value = data['step2'];
-        document.getElementById('tag3').value = data['step3'];
-        document.getElementById('tag4').value = data['step4'];
-        document.getElementById('tag5').value = data['step5'];
-        document.getElementById('tag1').innerHTML = data['step1'];
-        document.getElementById('tag2').innerHTML = data['step2'];
-        document.getElementById('tag3').innerHTML = data['step3'];
-        document.getElementById('tag4').innerHTML = data['step4'];
-        document.getElementById('tag5').innerHTML = data['step5'];
-      }
-    }
-  })
+  // skybox_init();
+  // load_connections(scan, curr_image_id);
+  matt.loadCubeTexture(cube_urls(scan, curr_image_id)).then(function(texture){
+    scene.background = texture;
+    move_to(curr_image_id, true);
+    // get_boundingbox(curr_image_id);
+  });
 }
 
 function next_bbox() {
@@ -182,20 +159,18 @@ function pre_bbox() {
 }
 
 function get_random_property() {
+  num1 = 0;
+  num2 = 0;
+  while(num1 == num2)
+  {
     var rand1 = Math.random();
     var rand2 = Math.random();
     var num1 = Math.floor(rand1 * 5);
     var num2 = Math.floor(rand2 * 5);
-    if(num1 == num2) {
-        if(num1 < 5) {
-            num2++;
-        }else{
-            num2--;
-        }
-    }
+  }
 
-    var properties = new Array('color', 'shape', 'material', 'state', 'size', 'pose');
-    return [properties[num1], properties[num2]];
+  var properties = new Array('color', 'shape', 'material', 'state', 'size', 'pose');
+  return [properties[num1], properties[num2]];
 };
 
 function play_animation() {
@@ -306,7 +281,7 @@ function select(event) {
   }
 }
 
-function load_connections(scan, image_id) {
+function load_connections(scan) {
   var pose_url  = "/connectivity/"+scan+"_connectivity.json";
   d3.json(pose_url, function(error, data) {
     if (error) return console.warn(error);
@@ -320,12 +295,6 @@ function load_connections(scan, image_id) {
       id_to_ix[im] = i;
     }
     world_frame.add(cylinder_frame);
-
-    matt.loadCubeTexture(cube_urls(scan, image_id)).then(function(texture){
-      scene.background = texture;
-      move_to(image_id, true);
-      // get_boundingbox(curr_image_id);
-    });
   });
 }
 
@@ -334,6 +303,51 @@ function cube_urls(scan, image_id) {
   return [ urlPrefix + "_skybox2_sami.jpg", urlPrefix + "_skybox4_sami.jpg",
       urlPrefix + "_skybox0_sami.jpg", urlPrefix + "_skybox5_sami.jpg",
       urlPrefix + "_skybox1_sami.jpg", urlPrefix + "_skybox3_sami.jpg" ];
+}
+
+// get saved instructions
+function extract_instr(){
+  // var instr_form = {
+  //   "scan": bbox['scan'],
+  //   "image_id": bbox['image_id'],
+  //   "heading": bbox['heading'],
+  //   "elevation": bbox['elevation'],
+  // };
+  var instr_form = bbox;
+  $.ajax({
+    type: "POST",
+    url: server_url + 'getSpecificInstr/',
+    contentType: "application/json",
+    dataType: "json",
+    data:JSON.stringify(instr_form),
+    success:function (data) {
+      console.log(data);
+      if (data != null) {
+        document.getElementById('tag1').value = data['step1'];
+        document.getElementById('tag2').value = data['step2'];
+        document.getElementById('tag3').value = data['step3'];
+        document.getElementById('tag4').value = data['step4'];
+        document.getElementById('tag5').value = data['step5'];
+        document.getElementById('tag1').innerHTML = data['step1'];
+        document.getElementById('tag2').innerHTML = data['step2'];
+        document.getElementById('tag3').innerHTML = data['step3'];
+        document.getElementById('tag4').innerHTML = data['step4'];
+        document.getElementById('tag5').innerHTML = data['step5'];
+      }
+      else{
+        document.getElementById('tag1').value = '';
+        document.getElementById('tag2').value = '';
+        document.getElementById('tag3').value = '';
+        document.getElementById('tag4').value = '';
+        document.getElementById('tag5').value = '';
+        document.getElementById('tag1').innerHTML = '';
+        document.getElementById('tag2').innerHTML = '';
+        document.getElementById('tag3').innerHTML = '';
+        document.getElementById('tag4').innerHTML = '';
+        document.getElementById('tag5').innerHTML = '';
+      }
+    }
+  });
 }
 
 function move_to(image_id, isInitial=false) {
@@ -352,6 +366,7 @@ function move_to(image_id, isInitial=false) {
   if (isInitial){
     set_camera_pose(cam_pose.matrix, cam_pose.height);
     get_boundingbox(image_id);
+    extract_instr();
   } else {
     set_camera_position(cam_pose.matrix, cam_pose.height);
   }
@@ -361,6 +376,7 @@ function move_to(image_id, isInitial=false) {
   // if (playing) {
   //   step_forward();
   // }
+
 }
 
 function set_camera_pose(matrix4d, height){
@@ -417,7 +433,7 @@ function take_action(image_id) {
   .to( {
     x: 0,
     y: target_y,
-    z: 0 }, 2000*Math.abs(rotate) )
+    z: 0 }, 400*Math.abs(rotate) )
   .easing( TWEEN.Easing.Cubic.InOut)
   .onUpdate(function() {
     camera.rotation.x = this.x;
@@ -428,7 +444,7 @@ function take_action(image_id) {
   var new_vfov = VFOV*0.8;
   var zoom_tween = new TWEEN.Tween({
     vfov: VFOV})
-  .to( {vfov: new_vfov }, 2000 )
+  .to( {vfov: new_vfov }, 400 )
   .easing(TWEEN.Easing.Cubic.InOut)
   .onUpdate(function() {
     camera.fov = this.vfov;
@@ -528,16 +544,12 @@ function get_boundingbox(image_id) {
 }
 
 function saveInstrs() {
-	console.log($('#tag1').val())
 	if($('#tag1').val() == '' || $('#tag2').val() == '' || $('#tag3').val() == '' || $('#tag4').val() == '' || $('#tag5').val() == '') {
 		alert("please complete the form");
 	} else if (confirm('Sure to save?')) {
+    console.log(bbox_ix)
 		var instr_form = {
-			"scan": scan,
-			"image_id": curr_image_id,
-			"obj_name": bboxes[ix]['obj_name'],
-			"heading": bboxes[ix]['heading'],
-			"elevation": bboxes[ix]['elevation'],
+			"bbox": bboxes[bbox_ix],
 			"step1": $('#tag1').val(),
 			"step2": $('#tag2').val(),
 			"step3": $('#tag3').val(),
@@ -559,7 +571,7 @@ function saveInstrs() {
 }
 
 function nextInstrs() {
-  bbox_ix += 
+  bbox_ix +=
   bbox_ix = bbox_ix + 1;
   if (bbox_ix >= bbox_max) { ix = 0;}
   $ix.value=ix;

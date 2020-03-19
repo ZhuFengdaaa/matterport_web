@@ -104,32 +104,31 @@ function writeBbox(params){
 }
 
 function writeInstr(params) {
-	var scan = params.scan;
-	var instr_path = '../app/instructions/' + scan + '_instructions.json';
-	var image_id = params.image_id;
-    var heading = params.heading;
-    var elevation = params.elevation;
+	console.log(params.bbox.scan)
+	var instr_path = '../app/instructions/' + params.bbox.scan + '_instructions.json';
+	if (!fs.existsSync(instr_path)) {
+    	fs.writeFileSync(instr_path, '[]')
+    }
     var data = fs.readFileSync(instr_path);
     var instrs = data.toString();
     instrs = JSON.parse(instrs);
-
     var exist = false;
     for (var i in instrs) {
-    	var ins = instrs[i];
-    	if (ins['scan'] == scan && ins['image_id'] == image_id && Math.abs(ins['heading'] - heading) < 1e-10 && Math.abs(ins['elevation'] - elevation) < 1e-10) {
-    		instrs[i] = params;
-		    var str = JSON.stringify(instrs);
-		    fs.writeFileSync(instr_path,str);
-		    console.log('----------write success-------------');
-		    exist = true;
-		    break;
-    	}
+        var ins = instrs[i];
+        if (ins['bbox']['obj_name'] == params.bbox.obj_name && ins['bbox']['scan'] == params.bbox.scan && ins['bbox']['image_id'] == params.bbox.image_id && Math.abs(ins['bbox']['heading'] - params.bbox.heading) < 1e-10 && Math.abs(ins['bbox']['elevation'] - params.bbox.elevation) < 1e-10) {
+            instrs[i] = params;
+            var str = JSON.stringify(instrs);
+            fs.writeFileSync(instr_path,str);
+            console.log('----------write success-------------');
+            exist = true;
+            break;
+        }
     }
     if (!exist) {
-    	instrs.push(params);
-	    var str = JSON.stringify(instrs);
-	    fs.writeFileSync(instr_path,str);
-	    console.log('----------write success-------------');
+        instrs.push(params);
+        var str = JSON.stringify(instrs);
+        fs.writeFileSync(instr_path,str);
+        console.log('----------write success-------------');
     }
 }
 
@@ -138,16 +137,24 @@ function getInstr(params) {
 	var instr_path = '../app/instructions/' + scan + '_instructions.json';
 	var image_id = params.image_id;
     var heading = params.heading;
-    var elevation = params.elevation;
+	var elevation = params.elevation;
+	console.log(instr_path)
     var data = fs.readFileSync(instr_path);
     var instrs = data.toString();
     instrs = JSON.parse(instrs);
 
     var exist = false;
     for (var i in instrs) {
-    	var ins = instrs[i];
-    	if (ins['scan'] == scan && ins['image_id'] == image_id && Math.abs(ins['heading'] - heading) < 1e-10 && Math.abs(ins['elevation'] - elevation) < 1e-10) {
-    		return ins;
+		var ins = instrs[i];
+		if (ins['bbox']['scan'] == scan && 
+		ins['bbox']['image_id'] == image_id && 
+		Math.abs(ins['bbox']['heading'] - heading) < 1e-10 && 
+		Math.abs(ins['bbox']['elevation'] - elevation) < 1e-10 &&
+		Math.abs(ins['bbox']['mouse_right_top']['x'] - params.mouse_right_top.x) < 1e-10 &&
+		Math.abs(ins['bbox']['mouse_right_top']['y'] - params.mouse_right_top.y) < 1e-10 &&
+		Math.abs(ins['bbox']['mouse_right_bottom']['x'] - params.mouse_right_bottom.x) < 1e-10 &&
+		Math.abs(ins['bbox']['mouse_right_bottom']['y'] - params.mouse_right_bottom.y) < 1e-10) {
+			return ins;
     	}
     }
     if (!exist) {
@@ -203,7 +210,7 @@ function getUserInstr(userName) {
 		}
 	}
 
-	// 选择已经标注好了的house，bbox数量大于等于100
+	// 选择已经标注好了的house，bbox数量大于等于80
 	var valid = false;
 	var valid_scan;
 	for (var i in arr) {
@@ -214,7 +221,7 @@ function getUserInstr(userName) {
 			var bbox_data = fs.readFileSync(bbox_path);
 		    var bbox = bbox_data.toString();
 		    bbox = JSON.parse(bbox);
-		    if (bbox.length >= 100) {
+		    if (bbox.length >= 80) {
 		    	console.log(bbox.length)
 		    	valid = true;
 		    	valid_scan = arr[i];
@@ -253,7 +260,7 @@ function readFileToArr(fReadName) {
 function del(arr,num) {
 	var l=arr.length;
     for (var i = 0; i < l; i++) {
-	  	if (arr[0]!==num) { 
+	  	if (arr[0]!==num) {
 	  		arr.push(arr[0]);
 	  	}
 	  	arr.shift(arr[0]);
