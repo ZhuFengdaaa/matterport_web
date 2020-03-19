@@ -115,7 +115,16 @@ function writeInstr(params) {
     var exist = false;
     for (var i in instrs) {
         var ins = instrs[i];
-        if (ins['bbox']['obj_name'] == params.bbox.obj_name && ins['bbox']['scan'] == params.bbox.scan && ins['bbox']['image_id'] == params.bbox.image_id && Math.abs(ins['bbox']['heading'] - params.bbox.heading) < 1e-10 && Math.abs(ins['bbox']['elevation'] - params.bbox.elevation) < 1e-10) {
+		if (ins['bbox']['obj_name'] == params.bbox.obj_name && 
+		ins['bbox']['scan'] == params.bbox.scan && 
+		ins['bbox']['image_id'] == params.bbox.image_id && 
+		Math.abs(ins['bbox']['heading'] - params.bbox.heading) < 1e-10 && 
+		Math.abs(ins['bbox']['elevation'] - params.bbox.elevation) < 1e-10 &&
+		Math.abs(ins['bbox']['mouse_right_top']['x'] - params.bbox.mouse_right_top.x) < 1e-10 &&
+		Math.abs(ins['bbox']['mouse_right_top']['y'] - params.bbox.mouse_right_top.y) < 1e-10 &&
+		Math.abs(ins['bbox']['mouse_right_bottom']['x'] - params.bbox.mouse_right_bottom.x) < 1e-10 &&
+		Math.abs(ins['bbox']['mouse_right_bottom']['y'] - params.bbox.mouse_right_bottom.y) < 1e-10
+		) {
             instrs[i] = params;
             var str = JSON.stringify(instrs);
             fs.writeFileSync(instr_path,str);
