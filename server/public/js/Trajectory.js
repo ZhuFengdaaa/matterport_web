@@ -39,6 +39,7 @@ var $scan_id=document.getElementById('scan_id');
 // var $play=document.getElementById('play');
 // var $download=document.getElementById('download');
 var $canvas=document.getElementById('skybox');
+var $saved_num=document.getElementById('saved_num');
 
 
 // set the initial input-text values to the width/height vars
@@ -198,6 +199,18 @@ function draw(){
   id = scan_arr[ix];
   scan = id;
   $scan_id.value = id;
+  $.ajax({
+        type: "get",
+        url: server_url + 'instrBbox/' + scan,
+        dataType: "json",
+        success : function (data) {
+            if(data != null) {
+              $saved_num.value = data.length
+            } else {
+              console.log('no such file');
+            }
+        }
+   });
   var img_path = "../data/v1/scans/" + scan + "/matterport_skybox_images/";
   $.ajax({
           type: "get",  // 请求方式

@@ -31,6 +31,10 @@ var matt = new Matterport3D("");
 var $ix=document.getElementById('ix');
 var $scan_id=document.getElementById('scan_id');
 
+var str = "<ul>"; 
+var bbox_state = new Array();
+var finished = new Array();
+
 $(document).ready(function() {
 	var user_name = prompt('Please input your user name:');
     while (user_name == undefined || user_name == ""){
@@ -105,12 +109,65 @@ function draw() {
                 bboxes = data
                 bbox_ix = 0;
                 initBbox();
+                getFinishedList();
               } else {
                 console.log('no such file');
               }
           }
      });
 }
+
+
+function getFinishedList() {
+  for (var i = 0; i < bbox_max; i++) {
+    bbox_i = bboxes[i];
+    bbox_state[i] = i + '_' + bbox_i['obj_name'];
+    finished[i] = false;
+    $.ajax({
+      async: false,
+      type: "POST",
+      url: server_url + 'getSpecificInstr/',
+      contentType: "application/json",
+      dataType: "json",
+      data:JSON.stringify(bbox_i),
+      success:function (data) {
+        if (data != null) {
+          if (data['step1'].length > 0 && data['step2'].length > 0 && data['step3'].length > 0 && data['step4'].length > 0 && data['step5'].length > 0) {
+            finished[i] = true;
+          }
+        }
+      }
+    })
+  }
+  all_bbox_state = {
+    'id': bbox_state,
+    'state': finished
+  }
+  $("#navigation").html( forTree(all_bbox_state));
+}
+ 
+/*递归实现获取无级树数据并生成DOM结构*/
+ 
+var forTree = function (data) {
+  if (str.length > 4) 
+    str = str.substring(0,str.length-5);
+   var all_bbox_ln = data['id'];
+   var all_bbox_finished = data['state'];
+   for(var i=0; i<all_bbox_ln.length; i++) {
+        var urlstr = "";
+        try {
+               
+             if(all_bbox_finished[i]) {
+                 urlstr = "<li onclick=exact_bbox(" + i + ")>" + all_bbox_ln[i] + " <span style=\"color:#FF0000\">done</span></li>";
+             }else {
+                  urlstr = "<li onclick=exact_bbox(" + i + ")>" + all_bbox_ln[i] + "</li>";
+             }
+              str+= urlstr;
+        }catch(e) {}        
+    }
+    str += "</ul>"  
+    return str; 
+};
 
 function initBbox() {
   document.body.scrollTop = 0;
@@ -125,6 +182,11 @@ function initBbox() {
     move_to(curr_image_id, true);
     // get_boundingbox(curr_image_id);
   });
+}
+
+function exact_bbox(id) {
+  bbox_ix = id;
+  initBbox();
 }
 
 function next_bbox() {
