@@ -54,8 +54,8 @@ $(document).ready(function() {
               ix_max = scan_arr.length;
               scan = scan_arr[ix];
               draw();
-              skybox_init();
-              load_connections(scan);
+              // skybox_init();
+              // load_connections(scan);
             } else {
               alert("暂时没有标注好的数据，多谢支持");
             }
@@ -108,7 +108,8 @@ function draw() {
               if(data != null) {
                 bboxes = data
                 bbox_ix = 0;
-                initBbox();
+                skybox_init();
+                load_connections(scan);
                 getFinishedList();
               } else {
                 console.log('no such file');
@@ -117,9 +118,30 @@ function draw() {
      });
 }
 
+function newHouse() {
+  $.ajax({
+        type: "get",
+        url: server_url + 'newHouseInstr/' + userName,
+        dataType: "json",
+        success:function (data) {
+          console.log(data);
+          if (data != null) {
+            scan_arr = data['scans'];
+            ix_max = scan_arr.length;
+            alert("申请成功，可增加或减少Index的值来改变house")
+          } else {
+            alert("暂时没有标注好的数据，多谢支持");
+          }
+        }
+   });
+}
+
 
 function getFinishedList() {
-  for (var i = 0; i < bbox_max; i++) {
+  str = '<ul>';
+  bbox_state = new Array();
+  finished = new Array();
+  for (var i = 0; i < bboxes.length; i++) {
     bbox_i = bboxes[i];
     bbox_state[i] = i + '_' + bbox_i['obj_name'];
     finished[i] = false;
@@ -357,6 +379,8 @@ function load_connections(scan) {
       id_to_ix[im] = i;
     }
     world_frame.add(cylinder_frame);
+
+    initBbox();
   });
 }
 
@@ -633,7 +657,6 @@ function saveInstrs() {
 }
 
 function nextInstrs() {
-  bbox_ix +=
   bbox_ix = bbox_ix + 1;
   if (bbox_ix >= bbox_max) { ix = 0;}
   $ix.value=ix;
