@@ -110,7 +110,7 @@ function draw() {
                 bbox_ix = 0;
                 skybox_init();
                 load_connections(scan);
-                // getFinishedList();
+                getFinishedList();
               } else {
                 console.log('no such file');
               }
@@ -139,7 +139,9 @@ function newHouse() {
 
 function getFinishedList() {
   str = '<ul>';
-  for (var i = 0; i < bbox_max; i++) {
+  bbox_state = new Array();
+  finished = new Array();
+  for (var i = 0; i < bboxes.length; i++) {
     bbox_i = bboxes[i];
     bbox_state[i] = i + '_' + bbox_i['obj_name'];
     finished[i] = false;

@@ -148,6 +148,9 @@ function getInstr(params) {
     var heading = params.heading;
 	var elevation = params.elevation;
 	console.log(instr_path)
+	if (!fs.existsSync(instr_path)) {
+    	fs.writeFileSync(instr_path, '[]')
+    }
     var data = fs.readFileSync(instr_path);
     var instrs = data.toString();
     instrs = JSON.parse(instrs);
