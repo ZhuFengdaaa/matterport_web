@@ -254,6 +254,58 @@ function getUserInstr(userName) {
 	}
 }
 
+function newHouseInstr(userName) {
+	user_path = '../app/instructions/user.txt';
+	scans_path = '../app/instructions/scans.txt';
+	var users_data = fs.readFileSync(user_path);
+	var users = users_data.toString();
+	users = JSON.parse(users);
+	var users_len = users.length;
+	arr = readFileToArr(scans_path);
+	console.log(arr.length);
+
+	var user_id;
+	for (var i in users) {
+		var u = users[i];
+		for (var j in u['scans']) {
+			arr = del(arr, u['scans'][j]);
+		}
+		if(u['user_name'] == userName)
+			user_id = i;
+	}
+
+	// 选择已经标注好了的house，bbox数量大于等于80
+	var valid = false;
+	var valid_scan;
+	for (var i in arr) {
+		bbox_path = '../app/bbox/' + arr[i] + '_boundingbox.json';
+		console.log(bbox_path)
+		if (fs.existsSync(bbox_path)) {
+			console.log('bbox file exists')
+			var bbox_data = fs.readFileSync(bbox_path);
+		    var bbox = bbox_data.toString();
+		    bbox = JSON.parse(bbox);
+		    if (bbox.length >= 80) {
+		    	console.log(bbox.length)
+		    	valid = true;
+		    	valid_scan = arr[i];
+		    	break;
+		    }
+		}
+	}
+
+	if (valid) {
+		user_anno = users[user_id];
+		user_anno['scans'].push(valid_scan);
+		users[user_id] = user_anno;
+		var str = JSON.stringify(users);
+	    fs.writeFileSync(user_path, str);
+		return user_anno;
+	} else {
+		return null;
+	}
+}
+
 function readFileToArr(fReadName) {
 
     var arr = [];
@@ -419,6 +471,11 @@ app.get('/instrBbox/:scanId', function(req, res) {
 	var bboxes = data.toString();
 	bboxes = JSON.parse(bboxes);
 	res.json(bboxes);
+})
+
+app.get('/newHouseInstr/:userName', function(req, res) {
+	var user_anno = newHouseInstr(req.params.userName);
+	res.json(user_anno);
 })
 
 app.listen(3000, function afterListen() {
