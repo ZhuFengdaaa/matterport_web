@@ -218,7 +218,9 @@ function getUserInstr(userName) {
 		if(u['user_name'] == userName) {
 			return u;
 		} else {
-			arr = del(arr, u['scans'][0]);
+			for (var j in u['scans']) {
+				arr = del(arr, u['scans'][j]);
+			}
 		}
 	}
 
