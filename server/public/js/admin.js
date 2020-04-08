@@ -602,30 +602,50 @@ function draw_bboxes(data)
   // camera.lookAt(scene.position);
   // camera.updateMatrix();
 
-  console.log(center_x)
-  console.log(center_y)
   // var lookAtVector = new THREE.Vector3(0,0, -1);
   var lookAtVector = new THREE.Vector3(0,0, -1);
-  console.log(lookAtVector)
+  // console.log(lookAtVector)
   lookAtVector.applyQuaternion(camera.quaternion);
-  console.log(lookAtVector)
   var center_vec = new THREE.Vector3(0,0, -1);
   center_vec.x = (left_top.x + right_bottom.x + right_top.x + left_bottom.x)/4
   center_vec.y = (left_top.y + right_bottom.y + right_top.y + left_bottom.y)/4
   center_vec.z = (left_top.z + right_bottom.z + right_top.z + left_bottom.z)/4
+  
+  // center_vec = center_vec.unproject(camera)
+  // console.log(lookAtVector)
+  // lookAtVector = lookAtVector.unproject(camera)
+  // center_vec = center_vec.unproject(camera)
+  // lookAtVector.project(camera)
+  // console.log(lookAtVector1)
+  // console.log(lookAtVector)
+  // lookAtVector.x = lookAtVector.x + center_vec.x
+  // lookAtVector.y = lookAtVector.y + center_vec.y
+  // lookAtVector.z = lookAtVector.z + center_vec.z
+  // lookAtVector = lookAtVector.project(camera)
+  // console.log(lookAtVector)
+  // lookAtVector.z = lookAtVector.z + center_vec.z
+  // lookAtVector = lookAtVector.project(camera)
+  // console.log(lookAtVector)
+  // lookAtVector.normalize()
+  console.log(lookAtVector)
+  // console.log(center_vec)
+  // center_vec.normalize()
   console.log(center_vec)
-  lookAtVector.x = lookAtVector.x + center_vec.x
+  if(lookAtVector.z < 0)
+    lookAtVector.x = lookAtVector.x + center_vec.x
+  else
+    lookAtVector.x = lookAtVector.x - center_vec.x
   lookAtVector.y = lookAtVector.y + center_vec.y
-  // distance_vec = 
-  // if (center_x < 0)
-  //   camera.position.x -= center_x;
+  // lookAtVector.z = lookAtVector.z + center_vec.z
+  
+  // if (center_vec.x < 0)
+  //   lookAtVector.x -= center_vec.x;
   // else
-  //   camera.position.x += center_x;
-  // if (center_y < 0)
-  //   camera.position.y -= center_y;
+  //   lookAtVector.x += center_vec.x;
+  // if (center_vec.y < 0)
+  //   lookAtVector.y += center_vec.y;
   // else
-  //   camera.position.y += center_y;
-  // camera.lookAt(lookAtVector)
+  //   lookAtVector.y += center_vec.y;
   camera.lookAt(lookAtVector)
   
   // var center_3d = data['center_3d'];
