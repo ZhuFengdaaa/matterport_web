@@ -565,13 +565,7 @@ function draw_bboxes(data)
   left_top_vec = left_top_vec.unproject(camera);
   right_bottom_vec = right_bottom_vec.unproject(camera);
   right_top_vec = right_top_vec.unproject(camera);
-  // var widthHalf = 0.5*renderer.context.canvas.width;
-  // var heightHalf = 0.5*renderer.context.canvas.height;
-  // var right_top_vec_copy = right_top_vec.clone()
-  // var proj = right_top_vec_copy.project(camera);
-  // proj.x = Math.round( proj.x * widthHalf  ) + widthHalf;
-  // proj.y = Math.round( -proj.y * heightHalf  ) + heightHalf;
-  // console.log(proj.x, proj.y)
+
   left_bottom_vec = left_bottom_vec.unproject(camera);
 
   var lineGeometry = new THREE.Geometry();
@@ -592,17 +586,7 @@ function draw_bboxes(data)
   center_x = (left_top.x + right_bottom.x) / 2.;
   center_y = (left_top.y + right_bottom.y) / 2.;
   center_z = left_top.z;
-  
-  // center_vec.x = center_x
-  // center_vec.y = center_y
-  // center_vec.z = center_z
-  // center_vec = center_vec.unproject(camera);
-  // console.log(center_vec)
-  // camera.position.set(center_vec.x, center_vec.y, center_vec.z);
-  // camera.lookAt(scene.position);
-  // camera.updateMatrix();
-
-  // var lookAtVector = new THREE.Vector3(0,0, -1);
+ 
   var lookAtVector = new THREE.Vector3(0,0, -1);
   // console.log(lookAtVector)
   lookAtVector.applyQuaternion(camera.quaternion);
@@ -611,41 +595,12 @@ function draw_bboxes(data)
   center_vec.y = (left_top.y + right_bottom.y + right_top.y + left_bottom.y)/4
   center_vec.z = (left_top.z + right_bottom.z + right_top.z + left_bottom.z)/4
   
-  // center_vec = center_vec.unproject(camera)
-  // console.log(lookAtVector)
-  // lookAtVector = lookAtVector.unproject(camera)
-  // center_vec = center_vec.unproject(camera)
-  // lookAtVector.project(camera)
-  // console.log(lookAtVector1)
-  // console.log(lookAtVector)
-  // lookAtVector.x = lookAtVector.x + center_vec.x
-  // lookAtVector.y = lookAtVector.y + center_vec.y
-  // lookAtVector.z = lookAtVector.z + center_vec.z
-  // lookAtVector = lookAtVector.project(camera)
-  // console.log(lookAtVector)
-  // lookAtVector.z = lookAtVector.z + center_vec.z
-  // lookAtVector = lookAtVector.project(camera)
-  // console.log(lookAtVector)
-  // lookAtVector.normalize()
-  console.log(lookAtVector)
-  // console.log(center_vec)
-  // center_vec.normalize()
-  console.log(center_vec)
   if(lookAtVector.z < 0)
     lookAtVector.x = lookAtVector.x + center_vec.x
   else
     lookAtVector.x = lookAtVector.x - center_vec.x
   lookAtVector.y = lookAtVector.y + center_vec.y
-  // lookAtVector.z = lookAtVector.z + center_vec.z
   
-  // if (center_vec.x < 0)
-  //   lookAtVector.x -= center_vec.x;
-  // else
-  //   lookAtVector.x += center_vec.x;
-  // if (center_vec.y < 0)
-  //   lookAtVector.y += center_vec.y;
-  // else
-  //   lookAtVector.y += center_vec.y;
   camera.lookAt(lookAtVector)
   
   // var center_3d = data['center_3d'];
