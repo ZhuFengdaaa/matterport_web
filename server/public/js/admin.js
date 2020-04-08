@@ -111,7 +111,7 @@ function draw() {
                 instr_ix = 0;
                 skybox_init();
                 load_connections(scan);
-                getFinishedList();
+                // getFinishedList(instrs);
               } else {
                 console.log('no such file');
               }
@@ -138,7 +138,7 @@ function newHouse() {
 }
 
 
-function getFinishedList() {
+function getFinishedList(instrs) {
   str = '<ul>';
   bbox_state = new Array();
   finished = new Array();
@@ -604,16 +604,28 @@ function draw_bboxes(data)
 
   console.log(center_x)
   console.log(center_y)
+  // var lookAtVector = new THREE.Vector3(0,0, -1);
   var lookAtVector = new THREE.Vector3(0,0, -1);
+  console.log(lookAtVector)
   lookAtVector.applyQuaternion(camera.quaternion);
-  if (center_x < 0)
-    camera.position.x -= center_x;
-  else
-    camera.position.x += center_x;
-  if (center_y < 0)
-    camera.position.y -= center_y;
-  else
-    camera.position.y += center_y;
+  console.log(lookAtVector)
+  var center_vec = new THREE.Vector3(0,0, -1);
+  center_vec.x = (left_top.x + right_bottom.x + right_top.x + left_bottom.x)/4
+  center_vec.y = (left_top.y + right_bottom.y + right_top.y + left_bottom.y)/4
+  center_vec.z = (left_top.z + right_bottom.z + right_top.z + left_bottom.z)/4
+  console.log(center_vec)
+  lookAtVector.x = lookAtVector.x + center_vec.x
+  lookAtVector.y = lookAtVector.y + center_vec.y
+  // distance_vec = 
+  // if (center_x < 0)
+  //   camera.position.x -= center_x;
+  // else
+  //   camera.position.x += center_x;
+  // if (center_y < 0)
+  //   camera.position.y -= center_y;
+  // else
+  //   camera.position.y += center_y;
+  // camera.lookAt(lookAtVector)
   camera.lookAt(lookAtVector)
   
   // var center_3d = data['center_3d'];
