@@ -1,0 +1,91 @@
+</!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset=utf-8>
+	<title>Collect data</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+<body>
+	<div class="container"">
+		<div><figure style="display: inline-block; width: 100%; float: right;">
+          <canvas id="skybox" style="width:auto; display: block; margin: 0 auto;">
+        </figure></div>
+	<div class="page-header">
+	<h1>Collect Instructions</h1>
+	<div class="row">
+	<div class="col-md-12">
+		<p>
+		  <!-- <button type="button" class="btn btn-default" onclick="newHouse()">New house</button> -->
+		  <strong>House:</strong>
+		  <button type="button" class="btn btn-default" onclick="left()">
+		    <span class="glyphicon glyphicon-triangle-left"></span>
+		  </button>
+		  <span>Index:</span><input type="text" id="ix">
+		  <button type="button" class="btn btn-default" onclick="right()">
+		    <span class="glyphicon glyphicon-triangle-right"></span>
+		  </button>
+		  <span>Scan ID:</span><input disabled=True type="text" id="scan_id">
+		</p>
+	</div>
+	</div>
+	</div>
+	<div id="instrs" class="form-group" style="display: inline-block; font-size: 18px; margin: 30;">
+		<p><strong>Target: <label id="target_name" style="color:#FF0000"></label></strong></p>
+        <p><strong><label for="tag1" id="two_pro">1. Describe propoties of the target.</label></strong></p>
+        <textarea class="form-control" id="tag1" name="tag1" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
+        <p><strong>2. Find at least two objects related to the target and describe their relationship.</strong></p>
+        <textarea class="form-control" id="tag2" name="tag2" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
+        <p><strong>3. Explore in simulator and describe the region where the target is placed within one sentence.</strong></p>
+        <textarea class="form-control" id="tag3" name="tag3" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
+        <p><strong>4. Explore nearby areas in simulator and describe the nearby regions within one sentence.</strong></p>
+        <textarea class="form-control" id="tag4" name="tag4" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
+        <p><strong>5. Rewrite all sentences within three sentences:</strong></p>
+        <textarea class="form-control" id="tag5" name="tag5" required="required" rows="3" size="150\" spellcheck="true" type="text"></textarea>
+        <div align="center">
+       <!--  <button class="btn btn-default" type="button" onclick="saveInstrs()">Save</button> -->
+        <button class="btn btn-default" type="button" onclick="next_bbox()">Next</button>
+        <button class="btn btn-default" type="button" onclick="pre_bbox()">Previous</button>
+        </div>
+	</div>
+	<div class="main_nav" id="navigation" style="display: inline-block;"></div>
+	</div>
+	<style type="text/css">
+	.main_nav{
+	    display:inline-block;
+	    width:400px;
+	    padding:10px;   
+	    font-weight:bold;   
+	    background-color:#BADFF2;
+	}
+	li{list-style:none;}
+	#collapseTrigger{
+	  color:#fff;
+	  display: block;
+	  text-decoration: none;
+	}
+	#submitButton{
+	  white-space: normal;
+	}
+	.image{
+	  margin-bottom: 15px;
+	}
+	.radio:first-of-type{
+	  margin-top: -5px;
+	}
+	img.loading {
+	  background: transparent url(http://thinkfuture.com/wp-content/uploads/2013/10/loading_spinner.gif) no-repeat scroll center center;
+	  min-height: 200px;
+	  min-width: 200px;
+	}
+	</style>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.10.2/d3.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/87/three.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.3.5/Tween.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript" src="js/RequestAnimationFrame.js"></script>
+	<script type="text/javascript" src="js/Detector.js"></script>
+	<script type="text/javascript" src="js/PTZCameraControls.js"></script>
+	<script type="text/javascript" src="js/Matterport3D.js"></script>
+	<script type="text/javascript" src="js/admin.js"></script>
+</body>
+</html>

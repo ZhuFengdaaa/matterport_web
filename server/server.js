@@ -3,6 +3,7 @@ var fs = require('fs');
 var image = require("imageinfo");
 var bodyParser = require('body-parser');
 var lineByLine = require('n-readlines');
+var glob = require("glob");
 
 var app = express();
 
@@ -391,6 +392,22 @@ function getUserBbox(userName) {
 	return user_anno;
 }
 
+function get_correct_instrs() {
+	var instr_path = '../app/new_instructions/';
+	var instr_files = glob.sync(instr_path + '/*.json');
+	var scans = [];
+	for (var path in instr_files) {
+		var path_i = instr_files[path];
+		var arr = path_i.split('/');
+		var filename = arr[arr.length - 1];
+		arr = filename.split('_');
+		var scan = arr[0];
+		scans.push(scan);
+	}
+	console.log(scans);
+	return scans;
+}
+
 app.get('/firstStart/:scanId', function(req, res) {
 	var files = getImageFiles('../app/data/v1/scans/' + req.params.scanId + '/matterport_skybox_images/');
 	if (files.length > 0) {
@@ -457,6 +474,10 @@ app.get('/collect-instr.html', function(req, res){
 	res.render('collect-instr.html')
 })
 
+app.get('/admin.html', function(req, res){
+	res.render('admin.html')
+})
+
 app.use(express.static('public'))
 
 // used for collecting instructions
@@ -481,6 +502,29 @@ app.get('/instrBbox/:scanId', function(req, res) {
 app.get('/newHouseInstr/:userName', function(req, res) {
 	var user_anno = newHouseInstr(req.params.userName);
 	res.json(user_anno);
+})
+
+app.get('/admin/:pwd', function(req, res) {
+	var pwd = req.params.pwd;
+	if (pwd == '33333') {
+		var scans = get_correct_instrs();
+		res.json(scans);
+	} else {
+		res.json(null);
+	}
+})
+
+app.get('/adminInstrBbox/:scan', function(req, res) {
+	var scan = req.params.scan;
+	var instr_path = '../app/new_instructions/' + scan + '_instructions.json';
+	if (fs.existsSync(instr_path)) {
+		var data = fs.readFileSync(instr_path);
+		var instrs = data.toString();
+		instrs = JSON.parse(instrs);
+		res.json(instrs);
+	} else {
+		res.json(null);
+	}
 })
 
 app.listen(3000, function afterListen() {
